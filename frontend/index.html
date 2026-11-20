@@ -373,6 +373,23 @@ const S={lang:'en',screen:0,why:false,assume:false,refill:false,sheet:null,toast
   {id:1,kind:'fare',cat:'cat_fare',amt:1100},{id:2,kind:'fare',cat:'cat_fare',amt:900},{id:3,kind:'fare',cat:'cat_fare',amt:400},
   {id:4,kind:'work',cat:'cat_cng',amt:600},{id:5,kind:'work',cat:'cat_vrent',amt:250}],
  lab:{pick:'normal',phase:'idle',month:0,res:{},done:{},p:1,fresh:false,details:false,newBadge:false}};
+ const api=async(p,o={})=>{const r=await fetch('/api'+p,{method:o.method||'GET',headers:{'content-type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j};
+S.api=null;
+async function refresh(){try{const[d,s]=await Promise.all([api('/dashboard'),api('/settings')]);S.api={d,s};S.lang=s.language}catch(e){S.api=null}render()}
+async function boot(){
+ await refresh();if(!S.api)return;
+ const d=S.api.d,e=(await api(`/entries?from=${d.todayDate}&to=${d.todayDate}`))[0];
+ S.entries=[];
+ if(e){if(e.gross)S.entries.push({id:S.nextId++,kind:'fare',cat:'cat_fare',amt:e.gross});
+  if(e.fuel)S.entries.push({id:S.nextId++,kind:'work',cat:'cat_cng',amt:e.fuel});
+  if(e.otherCosts)S.entries.push({id:S.nextId++,kind:'work',cat:'cat_vrent',amt:e.otherCosts})}
+ render();
+}
+async function sync(){
+ if(!S.api)return;
+ const sum=f=>S.entries.filter(f).reduce((a,x)=>a+x.amt,0);
+ try{await api('/entries',{method:'POST',body:{date:S.api.d.todayDate,gross:sum(x=>x.kind==='fare'),fuel:sum(x=>x.kind==='work'&&x.cat==='cat_cng'),otherCosts:sum(x=>x.kind==='work'&&x.cat!=='cat_cng')}});await refresh()}catch(e){toast(e.message)}
+}
 
 /* ---------- helpers ---------- */
 const t=(k,v)=>{let s=(I[S.lang][k]??I.en[k]??k);if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
@@ -421,7 +438,10 @@ function calc(){
  const runway=Math.floor(vault/NEED_DAY);
  const days=HIST.days+(gross>0?1:0);
  const avg=(HIST.gross-HIST.work+Math.max(net,0))/days;
- return {billsDay,gross,work,house,withdrawn,net,bills,vaultA,spendA,spendLeft,vault,runway,days,avg,shortfall:shortfallFor(vault)};
+  const r={billsDay,gross,work,house,withdrawn,net,bills,vaultA,spendA,spendLeft,vault,runway,days,avg,shortfall:shortfallFor(vault)};
+ if(!S.api)return r;
+ const d=S.api.d;
+ return {...r,bills:d.today.bills,vaultA:d.today.reserve,spendA:d.safeToSpend,spendLeft:Math.max(0,d.safeToSpend-house),vault:d.reserve.balance,runway:d.runwayDays,shortfall:d.check14.shortfall,avg:d.variability.avg,days:d.daysOfData};
 }
 function shortfallFor(vault){
  const need=S.bills.filter(b=>daysUntil(b.day)<=14).reduce((a,b)=>a+b.amt,0)+14*NEED_DAY,have=BILLS_FUND+vault+14*LEAN_INCOME_DAY;
@@ -768,7 +788,7 @@ function voice(){
 }
 function act(a,v,el,ev){
  switch(a){
-  case 'lang':S.lang=v;render();break;
+    case 'lang':S.lang=v;render();api('/settings',{method:'PUT',body:{...(S.api?.s||{}),language:v}}).catch(()=>{});break;
   case 'go':S.screen=+v;S.sheet=null;render();break;
   case 'openAdd':S.sheet={type:'add',kind:v,amount:'',cat:'cat_cng',voice:''};render();setTimeout(()=>{const i=$('#amt');if(i)i.focus()},50);break;
   case 'openOut':S.sheet={type:'out',amount:'',reason:'r_puncture'};render();setTimeout(()=>{const i=$('#amt');if(i)i.focus()},50);break;
@@ -790,10 +810,11 @@ function act(a,v,el,ev){
   case 'saveAdd':{const sh=S.sheet,amt=num(sh.amount);if(amt<=0)break;
    const isIn=sh.kind==='fare';
    S.entries.push({id:S.nextId++,kind:isIn?'fare':(sh.cat==='cat_home'?'house':'work'),cat:isIn?'cat_fare':sh.cat,amt});
-   S.sheet=null;toast(t('saved'));break}
-  case 'confirmOut':{const sh=S.sheet,amt=num(sh.amount),c=calc();if(amt<=0||amt>c.vault)break;
-   S.entries.push({id:S.nextId++,kind:'emergency',cat:sh.reason,amt});S.sheet=null;toast(t('out_done'));break}
-  case 'remove':S.entries=S.entries.filter(e=>e.id!==+v);toast(t('removed'));break;
+      S.sheet=null;toast(t('saved'));sync();break}
+    case 'confirmOut':{const sh=S.sheet,amt=num(sh.amount),c=calc();if(amt<=0||amt>c.vault)break;
+   S.entries.push({id:S.nextId++,kind:'emergency',cat:sh.reason,amt});S.sheet=null;toast(t('out_done'));
+   api('/buffer/withdraw',{method:'POST',body:{amount:amt,reason:sh.reason}}).then(()=>api('/buffer/rebuild/accept',{method:'POST'})).then(refresh).catch(e=>toast(e.message));break}
+    case 'remove':S.entries=S.entries.filter(e=>e.id!==+v);toast(t('removed'));sync();break;
   case 'why':S.why=!S.why;render();break;
   case 'assume':S.assume=!S.assume;render();break;
   case 'refill':S.refill=!S.refill;render();break;
@@ -813,7 +834,7 @@ document.addEventListener('input',ev=>{
  if(ev.target.id==='amt'&&S.sheet){const v=ev.target.value.replace(/\D/g,'').slice(0,6);ev.target.value=v;S.sheet.amount=v;refreshDyn()}
  if(ev.target.id==='day'&&S.sheet){const v=ev.target.value.replace(/\D/g,'').slice(0,2);ev.target.value=v;S.sheet.day=v;refreshDyn()}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&S.sheet){S.sheet=null;render()}});
-render();
+render();boot();
 </script>
 </body>
 </html>
