@@ -70,6 +70,15 @@ router.post('/bills/:id/pay', (req, res) => {
   // The response describes the bill that was just paid.
   res.json(billOut({ ...cur, paid: 1, covered_amt: cur.amount }));
 });
+router.delete('/bills/:id', (req, res) => {
+  const cur = one(req.params.id);
+  if (!cur) return res.status(404).json({ error: 'Bill not found' });
+  db.transaction(() => {
+    db.prepare('DELETE FROM entry_bill_alloc WHERE bill_id=?').run(cur.id);
+    db.prepare('DELETE FROM bills WHERE id=?').run(cur.id);
+  })();
+  res.json({ ok: true });
+});
 
 // Engine output for the unpaid-bill pool (raw DB rows in `bill`, see API.md).
 router.get('/bills/coverage', (req, res) => res.json(billCoverage(allBills(), protectedPool())));

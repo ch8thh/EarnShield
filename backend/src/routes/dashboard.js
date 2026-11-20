@@ -5,6 +5,9 @@ const { ESSENTIAL_DAILY_COST, billOut, allBills, reserveState } = require('../ut
 
 const router = express.Router();
 
+// Expected income on a lean day, as a share of the 14-day average net.
+const LEAN_INCOME_SHARE = 0.6;
+
 router.get('/dashboard', (req, res) => {
   const reserve = reserveState();
   const today = db.prepare('SELECT * FROM entries WHERE date=?').get(TODAY);
@@ -17,7 +20,22 @@ router.get('/dashboard', (req, res) => {
   const sd = n ? Math.sqrt(recent.reduce((a, b) => a + (b - mean) ** 2, 0) / n) : 0;
   const cv = mean > 0 ? sd / mean : 0;
   const level = cv < 0.15 ? 'low' : cv < 0.3 ? 'medium' : 'high';
+
+  const bills = allBills().filter((b) => !b.paid).map(billOut);
+
+  // 14-day check: can the next 14 days be covered on a lean stretch?
+  // Need  = part of bills due within 14 days that is not yet set aside + 14 days of essential costs.
+  // Have  = reserve balance + 14 days of lean income (a share of the recent average net).
+  const billsUncovered = bills
+    .filter((b) => b.daysLeft <= 14)
+    .reduce((a, b) => a + Math.max(0, b.amount * (1 - b.coveredPct / 100)), 0);
+  const need = billsUncovered + 14 * ESSENTIAL_DAILY_COST;
+  const have = reserve.balance + 14 * Math.max(0, mean) * LEAN_INCOME_SHARE;
+  const shortfall = Math.max(0, Math.round(need - have));
+
   res.json({
+    todayDate: TODAY, // the app's "today" (YYYY-MM-DD), use it as the date for POST /entries
+    daysOfData: (db.prepare('SELECT COUNT(*) AS c FROM entries').get().c),
     safeToSpend: today ? today.spend_amt : 0, // today's spend share (net - bills - reserve)
     todayAdded: today ? today.reserve_amt : 0, // rupees added to the reserve today
     today: {
@@ -29,7 +47,8 @@ router.get('/dashboard', (req, res) => {
     runwayDays: runwayDays(reserve.balance, ESSENTIAL_DAILY_COST),
     reserve,
     variability: { min, max, avg, level },
-    bills: allBills().filter((b) => !b.paid).map(billOut),
+    check14: { ok: shortfall === 0, shortfall },
+    bills,
   });
 });
 
