@@ -100,9 +100,11 @@ const seed = db.transaction(() => {
   db.prepare(`INSERT INTO settings (id,language,reserve_mode,weather_alerts) VALUES (1,'en','auto',1)`).run();
 });
 
-function resetSeed() { seed(); }
+// Modules holding state in memory (e.g. a pending withdrawal) register here to be cleared on reset.
+const resetHooks = [];
+function resetSeed() { seed(); resetHooks.forEach((fn) => fn()); }
 
 const hasData = db.prepare('SELECT COUNT(*) c FROM settings').get().c > 0;
 if (!hasData) seed();
 
-module.exports = { db, resetSeed, DRIVER, TODAY };
+module.exports = { db, resetSeed, resetHooks, DRIVER, TODAY };

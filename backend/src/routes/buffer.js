@@ -1,27 +1,59 @@
 const express = require('express');
-const { bad } = require('../util');
+const { db, TODAY, resetHooks } = require('../db');
+const { billCoverage, runwayDays } = require('../engine/core');
+const { ESSENTIAL_DAILY_COST, allBills, protectedPool, reserveState, bad } = require('../util');
 
 const router = express.Router();
 
-// TODO: real simulation via engine (runwayDays, billCoverage); persist on accept.
+// The simulated withdrawal waiting for /buffer/rebuild/accept (one driver, so one slot).
+let pending = null;
+resetHooks.push(() => { pending = null; });
+
+const coverageList = (pool) =>
+  billCoverage(allBills().filter((b) => !b.paid), pool).map(({ bill, coveredPct }) => ({ name: bill.name, coveredPct }));
+
+// Rupees by which the reserve sits below its safety buffer. Bills lean on that money once it is touched.
+const dip = (balance, buffer) => Math.max(0, buffer - balance);
+
 router.post('/buffer/withdraw', (req, res) => {
-  const { amount } = req.body || {};
-  if (typeof amount !== 'number' || amount <= 0) throw bad('amount must be a positive number');
+  const { amount, reason } = req.body || {};
+  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) throw bad('amount must be a positive number');
+  const rs = reserveState();
+  if (amount > rs.balance) throw bad('amount is more than the reserve balance');
+
+  const after = rs.balance - amount;
+  const poolBefore = protectedPool();
+  // Dropping below the buffer takes money away from bills; staying above it does not.
+  const poolAfter = Math.max(0, poolBefore - (dip(after, rs.buffer) - dip(rs.balance, rs.buffer)));
+
+  // Rebuild at the driver's usual daily reserve saving (average of the last 14 days).
+  const rows = db.prepare('SELECT reserve_amt FROM entries ORDER BY date DESC LIMIT 14').all();
+  const avgSave = rows.length ? rows.reduce((a, r) => a + r.reserve_amt, 0) / rows.length : 0;
+  const days = avgSave > 0 ? Math.ceil(amount / avgSave) : 10;
+  const rebuildPlan = { days, perDay: Math.round(amount / days) };
+
+  pending = { amount, reason: typeof reason === 'string' && reason.trim() ? reason.trim() : 'Withdrawal', rebuildPlan };
   res.json({
-    runwayBefore: 14,
-    runwayAfter: 11,
-    coverageBefore: [
-      { name: 'Mobile recharge', coveredPct: 100 }, { name: 'Room rent', coveredPct: 80 },
-      { name: 'Auto loan EMI', coveredPct: 55 }, { name: 'School fees', coveredPct: 30 },
-    ],
-    coverageAfter: [
-      { name: 'Mobile recharge', coveredPct: 100 }, { name: 'Room rent', coveredPct: 70 },
-      { name: 'Auto loan EMI', coveredPct: 45 }, { name: 'School fees', coveredPct: 20 },
-    ],
-    rebuildPlan: { days: 10, perDay: Math.round(amount / 10) },
+    runwayBefore: runwayDays(rs.balance, ESSENTIAL_DAILY_COST),
+    runwayAfter: runwayDays(after, ESSENTIAL_DAILY_COST),
+    coverageBefore: coverageList(poolBefore),
+    coverageAfter: coverageList(poolAfter),
+    rebuildPlan,
   });
 });
 
-router.post('/buffer/rebuild/accept', (req, res) => res.json({ ok: true }));
+router.post('/buffer/rebuild/accept', (req, res) => {
+  if (!pending) throw bad('no withdrawal to accept; call /buffer/withdraw first');
+  const { amount, reason, rebuildPlan } = pending;
+  db.transaction(() => {
+    if (amount > reserveState().balance) throw bad('reserve changed; withdraw again');
+    db.prepare('UPDATE reserve_state SET balance=balance-? WHERE id=1').run(amount);
+    const ev = db.prepare('INSERT INTO buffer_events (date,type,amount,reason) VALUES (?,?,?,?)');
+    ev.run(TODAY, 'withdraw', amount, reason);
+    ev.run(TODAY, 'rebuild', rebuildPlan.perDay, `Rebuild ${rebuildPlan.perDay}/day for ${rebuildPlan.days} days`);
+  })();
+  pending = null;
+  res.json({ ok: true });
+});
 
 module.exports = router;
