@@ -46,6 +46,11 @@ CREATE TABLE IF NOT EXISTS buffer_events (
   amount REAL NOT NULL,
   reason TEXT
 );
+CREATE TABLE IF NOT EXISTS entry_bill_alloc (   -- how each entry's bills share was spread (for exact undo)
+  date    TEXT NOT NULL,
+  bill_id INTEGER NOT NULL,
+  amount  REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS settings (
   id             INTEGER PRIMARY KEY CHECK (id = 1),
   language       TEXT NOT NULL DEFAULT 'en',
@@ -64,7 +69,7 @@ function addDays(iso, n) {
 }
 
 const seed = db.transaction(() => {
-  for (const t of ['entries', 'bills', 'reserve_state', 'buffer_events', 'settings']) db.exec(`DELETE FROM ${t}`);
+  for (const t of ['entries', 'bills', 'reserve_state', 'buffer_events', 'settings', 'entry_bill_alloc']) db.exec(`DELETE FROM ${t}`);
   db.exec(`DELETE FROM sqlite_sequence WHERE name IN ('bills','buffer_events')`);
 
   const ins = db.prepare(`INSERT INTO entries (date,gross,fuel,other_costs,net,bills_amt,reserve_amt,spend_amt)

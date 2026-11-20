@@ -1,6 +1,8 @@
 const { db, TODAY } = require('./db');
 
-const ESSENTIAL_DAILY_COST = 600; // TODO: derive from settings/bills
+// Rupees/day the driver needs for essentials (food, rent share, phone). Fixed demo value for now;
+// there is no settings column for it yet. Keep the name: runway calculations depend on it.
+const ESSENTIAL_DAILY_COST = 600;
 
 const daysBetween = (from, to) =>
   Math.round((Date.parse(to + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / 86400000);
