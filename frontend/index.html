@@ -441,7 +441,7 @@ function calc(){
   const r={billsDay,gross,work,house,withdrawn,net,bills,vaultA,spendA,spendLeft,vault,runway,days,avg,shortfall:shortfallFor(vault)};
  if(!S.api)return r;
  const d=S.api.d;
- return {...r,bills:d.today.bills,vaultA:d.today.reserve,spendA:d.safeToSpend,spendLeft:Math.max(0,d.safeToSpend-house),vault:d.reserve.balance,runway:d.runwayDays,shortfall:d.check14.shortfall,avg:d.variability.avg,days:d.daysOfData};
+ return {...r,bills:d.today.bills,vaultA:d.today.reserve,spendA:d.safeToSpend,spendLeft:Math.max(0,d.safeToSpend-house),vault:d.reserve.balance,runway:d.runwayDays,shortfall:d.check14.shortfall,avg:d.variability.avg,days:Math.min(14,d.daysOfData)};
 }
 function shortfallFor(vault){
  const need=S.bills.filter(b=>daysUntil(b.day)<=14).reduce((a,b)=>a+b.amt,0)+14*NEED_DAY,have=BILLS_FUND+vault+14*LEAN_INCOME_DAY;
@@ -527,7 +527,7 @@ function viewHome(){
    <div class="hero-row"><div><span>${t('earned')}</span><b class="pos-d num">${plus(c.gross)}</b></div><div><span>${t('costs')}</span><b class="neg-d num">${minus(c.work)}</b></div></div>
   </section>
   <div class="alert">${ic('rain',28,2.4)}<div><div style="font-size:18px;font-weight:800">${t('weather_title')}</div><div>${t('weather')}</div><div class="tag">${t('weather_tag')}</div></div></div>
-  <div class="note">${ic('info',22)}<span>${t('warn_data',{n:c.days})}</span></div>
+  ${c.days<14?`<div class="note">${ic('info',22)}<span>${t('warn_data',{n:c.days})}</span></div>`:''}
   <div class="two">
    <button class="btn" data-a="openAdd" data-v="fare"><span class="dot p">${ic('plus',20,3.2)}</span>${t('add_earn')}</button>
    <button class="btn" data-a="openAdd" data-v="expense"><span class="dot n">${ic('minus',20,3.2)}</span>${t('add_exp')}</button>
