@@ -5,7 +5,7 @@ Base URL `http://localhost:4000/api`. JSON in/out, CORS enabled, no auth. Money 
 ## Dashboard
 `GET /dashboard`
 ```json
-{ "safeToSpend": 1240, "todayAdded": 260,
+{ "safeToSpend": 520, "todayAdded": 260,
   "today": { "bills": 520, "reserve": 260, "workCosts": 550 },
   "reservePct": 56, "runwayDays": 14,
   "reserve": { "balance": 8400, "target": 15000, "buffer": 3000 },
@@ -16,7 +16,7 @@ Base URL `http://localhost:4000/api`. JSON in/out, CORS enabled, no auth. Money 
 Bill `status`: `covered | on-track | at-risk | paid`.
 
 ## Entries
-- `POST /entries` `{date, gross, fuel, otherCosts}` → `201 {net, split:{bills,reserve,spend}, reservePct, explanation:[string]}` (upserts by date)
+- `POST /entries` `{date, gross, fuel, otherCosts}` → `201 {net, split:{bills,reserve,spend}, reservePct, explanation:[string]}` (upserts by date; re-posting a date replaces its earlier effect on reserve and bills). Here `reservePct` is the reserve balance after this entry as % of target (same meaning as the dashboard), not the share of net.
 - `GET /entries?from&to` → `[{date, gross, fuel, otherCosts, net, split:{bills,reserve,spend}}]`
 - `GET /explain/:date` → `{steps:[{label, amount}], explanation:[string]}` (404 if no entry)
 
