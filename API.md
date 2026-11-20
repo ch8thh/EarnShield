@@ -25,6 +25,13 @@ Bill `status`: `covered | on-track | at-risk | paid`.
 - `POST /bills` `{name, amount, dueDate, repeat, mustPay}` → `201` bill
 - `PATCH /bills/:id` any of the above fields → bill
 - `POST /bills/:id/pay` → bill (`paid: true`)
+- `GET /bills/coverage` → output of the engine's `billCoverage(bills, protectedPool)` (currently a stub with `protectedPool = 0`):
+  ```json
+  [{ "bill": { "id": 1, "name": "Mobile recharge", "amount": 299, "due_date": "2026-11-24",
+               "repeat": "monthly", "must_pay": 1, "paid": 0, "covered_amt": 299 },
+     "coveredPct": 100, "status": "covered" }]
+  ```
+  Note: `bill` is the raw DB row (snake_case), unlike the camelCase bill objects elsewhere. Internal/unstable; don't build UI on it yet.
 
 ## Reserve & buffer
 - `GET /reserve` → `{balance, target, buffer, history:[{id,date,type,amount,reason}]}`
@@ -38,4 +45,4 @@ Bill `status`: `covered | on-track | at-risk | paid`.
 ## Settings & utility
 - `GET /settings` / `PUT /settings` → `{language, reserveMode, weatherAlerts}` (PUT merges partial bodies)
 - `POST /seed/reset` → `{ok:true}` — restore the demo seed
-- `GET /health` → `{ok:true}`
+- `GET /health` → `{"ok": true}` — liveness check, no DB access
