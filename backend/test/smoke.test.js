@@ -122,3 +122,21 @@ test('seed reset restores state', async () => {
   assert.equal(d.body.bills.length, 4);
   assert.equal((await call('GET', '/entries')).body.length, 15);
 });
+test('dashboard has todayDate, daysOfData and check14', async () => {
+  const { body } = await call('GET', '/dashboard');
+  assert.equal(body.todayDate, '2026-11-20');
+  assert.equal(body.daysOfData, 15);
+  assert.equal(body.check14.ok, true);
+  assert.equal(body.check14.shortfall, 0);
+  assert.equal(typeof body.today, 'object');
+});
+
+test('DELETE /bills/:id removes a bill', async () => {
+  await call('POST', '/seed/reset');
+  const before = (await call('GET', '/bills')).body.length;
+  const del = await call('DELETE', '/bills/1');
+  assert.equal(del.status, 200);
+  assert.equal((await call('GET', '/bills')).body.length, before - 1);
+  assert.equal((await call('DELETE', '/bills/999')).status, 404);
+  await call('POST', '/seed/reset');
+});
