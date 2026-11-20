@@ -104,6 +104,17 @@ test('other routes respond', async () => {
   }
 });
 
+test('PUT /settings validates values', async () => {
+  await call('POST', '/seed/reset');
+  for (const bad of [{ language: 'fr' }, { language: 5 }, { reserveMode: 'x' }, { weatherAlerts: 'yes' }]) {
+    assert.equal((await call('PUT', '/settings', bad)).status, 400, JSON.stringify(bad));
+  }
+  assert.deepEqual((await call('GET', '/settings')).body, { language: 'en', reserveMode: 'auto', weatherAlerts: true });
+  const ok = await call('PUT', '/settings', { language: 'hi', weatherAlerts: false });
+  assert.deepEqual(ok.body, { language: 'hi', reserveMode: 'auto', weatherAlerts: false });
+  await call('POST', '/seed/reset');
+});
+
 test('seed reset restores state', async () => {
   await call('POST', '/bills/2/pay');
   await call('POST', '/seed/reset');

@@ -43,6 +43,6 @@ Bill `status`: `covered | on-track | at-risk | paid`.
 - `GET /reports/export.csv?from&to` → CSV (`date,gross,fuel,other_costs,net,bills,reserve,spend`)
 
 ## Settings & utility
-- `GET /settings` / `PUT /settings` → `{language, reserveMode, weatherAlerts}` (PUT merges partial bodies)
+- `GET /settings` / `PUT /settings` → `{language, reserveMode, weatherAlerts}` (PUT merges partial bodies). Allowed: `language` en | kn | hi, `reserveMode` auto | manual, `weatherAlerts` boolean; anything else → 400
 - `POST /seed/reset` → `{ok:true}` — restore the demo seed
 - `GET /health` → `{"ok": true}` — liveness check, no DB access
