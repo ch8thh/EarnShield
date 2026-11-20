@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('./db'); // initialises schema + seed
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../../frontend')));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
@@ -13,6 +15,10 @@ for (const name of ['dashboard', 'entries', 'explain', 'settings', 'seed', 'bill
 }
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
+
+// Serve the frontend (frontend/index.html) so one server runs everything.
+app.use(express.static(path.join(__dirname, '../../frontend')));
+
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   if (!err.status || err.status >= 500) console.error(err);
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
