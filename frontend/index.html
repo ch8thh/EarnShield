@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EarnShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500;700;800&family=Noto+Sans+Devanagari:wght@500;700;800&family=Noto+Sans+Kannada:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Plan: black primary, white secondary text, green = money in, red = money out.
+   One font family across English, Hindi and Kannada, bold throughout.
+   Layout: one phone frame, four screens (language, home, money and vault, test lab). */
+:root{
+  --ink:#0A0A0A;
+  --paper:#FFFFFF;
+  --bg:#F2F2EF;
+  --line:#E2E2DC;
+  --soft:#ECECE6;
+  --mute:#55554F;
+  --pos:#087F37;
+  --pos-d:#3EDC84;
+  --neg:#D02A1E;
+  --neg-d:#FF7A6E;
+  --font:'Noto Sans','Noto Sans Devanagari','Noto Sans Kannada',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:#E7E7E2;color:var(--ink);font-family:var(--font);font-weight:700;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html[lang="hi"] body,html[lang="kn"] body{line-height:1.65}
+button{font:inherit;font-weight:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid #2B6CFF;outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.pos-d{color:var(--pos-d)}.neg-d{color:var(--neg-d)}
+
+/* page layout */
+.shell{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding:32px 24px}
+.rail{width:250px;display:flex;flex-direction:column;gap:8px}
+.rail h2{font-size:15px;color:var(--mute);margin-bottom:6px;letter-spacing:.02em}
+.rail button{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 14px;border-radius:16px;border:2px solid transparent;font-size:17px}
+.rail button:hover{background:rgba(10,10,10,.06)}
+.rail button[aria-current="true"]{background:var(--ink);color:#fff}
+.rail .n{width:30px;height:30px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-size:14px;flex:none}
+.brand-rail{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:800;margin-bottom:18px}
+
+.phone{position:relative;width:390px;height:min(844px,calc(100dvh - 64px));min-height:640px;background:var(--bg);border-radius:44px;box-shadow:0 0 0 10px var(--ink),0 40px 80px rgba(0,0,0,.22);overflow:hidden;display:flex;flex-direction:column}
+@media (max-width:900px){.rail{display:none}}
+@media (max-width:520px){
+  .shell{padding:0}
+  .phone{width:100%;height:100dvh;min-height:0;border-radius:0;box-shadow:none}
+}
+
+.view{flex:1;min-height:0;overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:16px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.head h1{font-size:28px;line-height:1.3;font-weight:800;text-wrap:balance}
+.date{font-size:15px;color:var(--mute)}
+.lang{display:flex;flex:none;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:2px}
+.lang button{min-width:44px;height:40px;padding:0 6px;border-radius:999px;font-size:15px;font-weight:800;text-align:center}
+.lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+/* cards */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card h2{font-size:20px;line-height:1.35;font-weight:800}
+.cap{font-size:15px;color:var(--mute);line-height:1.5}
+.hero{background:var(--ink);color:#fff;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.hero .lbl{font-size:17px}
+.amt{font-size:60px;line-height:1.15;font-weight:800;letter-spacing:-.02em}
+.hero p{font-size:17px}
+.hero hr{border:0;border-top:1px solid rgba(255,255,255,.22)}
+.hero-row{display:flex;gap:12px}
+.hero-row>div{flex:1;display:flex;flex-direction:column}
+.hero-row span{font-size:15px}
+.hero-row b{font-size:24px;font-weight:800}
+.status{display:flex;align-items:flex-start;gap:10px;font-size:16px}
+.status svg{flex:none;margin-top:4px}
+
+/* buttons */
+.btn{min-height:58px;border-radius:18px;background:var(--ink);color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 18px;text-align:center;line-height:1.35}
+.btn.light{background:var(--paper);color:var(--ink);border:2px solid var(--ink)}
+.btn.on-dark{background:#fff;color:var(--ink)}
+.btn[disabled]{opacity:.3;cursor:not-allowed}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two .btn{flex-direction:column;gap:6px;padding:14px 8px;min-height:92px}
+.dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none}
+.dot.p{background:var(--pos-d)}.dot.n{background:var(--neg-d)}
+.icon-btn{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}
+.icon-btn:hover{background:var(--soft)}
+
+/* rows and pills */
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
+.row+.row{border-top:1px solid var(--line)}
+.row .big{font-size:22px;font-weight:800}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:14px;font-weight:800;line-height:1.5;align-self:flex-start}
+.pill.ok{background:#DFF4E7;color:var(--pos)}
+.pill.bad{background:#FCE6E3;color:var(--neg)}
+.pill.na{background:var(--soft);color:var(--mute)}
+.goal{display:flex;flex-direction:column;gap:6px;padding:12px 0}
+.goal+.goal{border-top:1px solid var(--line)}
+.bar{height:14px;border-radius:99px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:99px}
+.on-black .bar{background:rgba(255,255,255,.22)}
+.on-black .bar i{background:#fff}
+.link-card{text-align:left;width:100%}
+.split{display:flex;height:18px;border-radius:99px;overflow:hidden;gap:3px}
+.split i{display:block;height:100%;min-width:0}
+.sw1{background:var(--ink)}.sw2{background:#8A8A83}.sw3{background:#CFCFC8}
+.key{width:16px;height:16px;border-radius:5px;flex:none}
+.keyrow{display:flex;align-items:center;gap:10px}
+
+.note{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px 16px;font-size:15px;line-height:1.55}
+.note svg{flex:none;margin-top:3px}
+.acc{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;font-size:17px;font-weight:800}
+.acc svg{transition:transform .15s}
+.acc[aria-expanded="true"] svg{transform:rotate(180deg)}
+.bullets{display:flex;flex-direction:column;gap:10px;font-size:16px}
+.bullets div{display:flex;gap:10px}
+.bullets div:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink);margin-top:11px;flex:none}
+
+/* tabs */
+.tabs{flex:none;background:var(--ink);display:grid;grid-template-columns:repeat(3,1fr);padding:8px 10px calc(10px + env(safe-area-inset-bottom));gap:6px}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:60px;padding:6px 4px;border-radius:18px;color:#B5B5AE;font-size:14px;font-weight:800;text-align:center;line-height:1.35}
+.tabs button[aria-current="true"]{background:#fff;color:var(--ink)}
+
+/* language screen */
+.lang-screen{justify-content:space-between;padding-top:36px}
+.logo{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:800}
+.logo .mark{width:48px;height:48px;border-radius:14px;background:var(--ink);color:#fff;display:grid;place-items:center}
+.lang-screen h1{font-size:36px;line-height:1.3;font-weight:800;text-wrap:balance}
+.tile{display:flex;align-items:center;gap:16px;min-height:84px;padding:12px 18px;background:var(--paper);border:3px solid var(--line);border-radius:24px;width:100%}
+.tile[aria-pressed="true"]{border-color:var(--ink)}
+.tile .g{width:52px;height:52px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:24px;font-weight:800;flex:none}
+.tile[aria-pressed="true"] .g{background:var(--ink);color:#fff}
+.tile .nm{font-size:26px;font-weight:800;flex:1;line-height:1.4}
+.tile .ck{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;flex:none;color:transparent}
+.tile[aria-pressed="true"] .ck{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(10,10,10,.55);display:flex;align-items:flex-end;z-index:20}
+.sheet{width:100%;max-height:94%;overflow-y:auto;background:var(--paper);border-radius:30px 30px 0 0;padding:20px 20px 28px;display:flex;flex-direction:column;gap:14px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheet-head h2{font-size:22px;font-weight:800;line-height:1.4}
+.lab{font-size:16px;color:var(--mute)}
+.amount{display:flex;align-items:center;gap:6px;height:76px;border:3px solid var(--ink);border-radius:20px;padding:0 18px;font-size:38px;font-weight:800}
+.amount:focus-within{outline:3px solid #2B6CFF;outline-offset:2px}
+.amount input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;color:inherit;height:100%}
+#dyn{display:flex;flex-direction:column;gap:14px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{min-height:50px;padding:6px 16px;border-radius:16px;border:2px solid var(--line);background:var(--paper);font-size:16px;font-weight:800;line-height:1.4}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp>div{background:var(--bg);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.cmp b{font-size:26px;font-weight:800;line-height:1.3}
+.say{font-size:16px;display:flex;gap:10px;align-items:flex-start}
+.say svg{flex:none;margin-top:3px}
+
+/* switches */
+.sw{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:68px;padding:12px 16px;border-radius:20px;background:var(--paper);border:2px solid var(--line);width:100%;font-size:17px;line-height:1.45}
+.sw[aria-checked="true"]{border-color:var(--ink)}
+.trk{width:58px;height:34px;border-radius:99px;background:#C9C9C2;position:relative;flex:none;transition:background .15s}
+.trk:after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw[aria-checked="true"] .trk{background:var(--ink)}
+.sw[aria-checked="true"] .trk:after{transform:translateX(24px)}
+
+/* results */
+.res-head,.res-cells{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.res-head div{font-size:15px;line-height:1.4;text-align:center;padding:6px 4px;border-radius:12px;background:var(--soft)}
+.res-head div.es{background:var(--ink);color:#fff}
+.metric{display:flex;flex-direction:column;gap:8px;padding:12px 0}
+.metric+.metric{border-top:1px solid var(--line)}
+.metric>span{font-size:16px;line-height:1.5}
+.res-cells>div{border:2px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70px;line-height:1.35}
+.res-cells b{font-size:21px;font-weight:800}
+.res-cells small{font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px}
+.warnbox{border-radius:24px;padding:20px;background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:10px}
+.warnbox h2{font-size:20px;font-weight:800}
+.warnbox .st{display:flex;gap:10px;font-size:16px}
+.warnbox .st svg{flex:none;margin-top:4px}
+
+/* weather alert */
+.alert{background:var(--neg);color:#fff;border-radius:22px;padding:18px;display:flex;gap:14px;align-items:flex-start;font-size:16px;line-height:1.55}
+.alert svg{flex:none;margin-top:2px}
+.alert .tag{font-size:14px;opacity:.9;margin-top:4px}
+/* stress lab game */
+.progress{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stars{display:flex;gap:4px;color:#B9B9B2}
+.stars .on{color:var(--pos)}
+.stars svg{fill:none}.stars .on svg{fill:currentColor}
+.pickgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pick{position:relative;min-height:116px;padding:14px 12px;border:3px solid var(--line);border-radius:22px;background:var(--paper);display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:8px;font-size:16px;line-height:1.4}
+.pick[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.pick .pi{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center}
+.pick[aria-pressed="true"] .pi{background:#fff}
+.pick .dn{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:var(--pos-d);color:var(--ink);display:grid;place-items:center}
+.pick[disabled]{opacity:.5;cursor:not-allowed}
+.segs{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.segs i{display:block;height:16px;border-radius:5px;background:rgba(255,255,255,.22)}
+.segs i.on{background:var(--pos-d)}
+.badge{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;flex:none}
+.badge.good{background:var(--pos-d);color:var(--ink)}
+.badge.meh{background:var(--soft);color:var(--ink)}
+.verdict{font-size:24px;line-height:1.4;font-weight:800;text-wrap:balance}
+.barrow{display:flex;flex-direction:column;gap:6px}
+.barrow .bl{display:flex;justify-content:space-between;gap:10px;font-size:16px}
+.track{height:22px;border-radius:99px;background:var(--soft);overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px}
+.big-pill{font-size:20px;padding:8px 16px;align-self:flex-start}
+.pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:1}}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:40}
+.confetti i{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:fall 2.3s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),980px) rotate(720deg)}}
+
+.toast{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:99px;font-size:16px;z-index:30;white-space:nowrap;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail" id="rail" aria-label="Screens"></aside>
+  <main class="phone" id="phone"></main>
+</div>
+
+<script>
+/* ---------- translations: every visible word lives here ---------- */
+const LANGS={en:{code:'EN',loc:'en-IN',name:'English'},hi:{code:'हि',loc:'hi-IN',name:'हिन्दी'},kn:{code:'ಕ',loc:'kn-IN',name:'ಕನ್ನಡ'}};
+const I={
+en:{
+ lang_title:"Choose your language",lang_sub:"You can change it any time.",tagline:"Know what you can safely spend today.",cont:"Continue",
+ rail_title:"Screens",s0:"Language",s1:"Home",s2:"Money and vault",s3:"Safety test",
+ tab_home:"Home",tab_money:"Money",tab_lab:"Safety test",
+ home_title:"Today",safe_label:"Safe to spend today",safe_why:"After keeping your next rent safe and {v} in the vault.",
+ safe_lean:"Today's earnings are less than your bills need. Do not spend extra.",safe_none:"No earnings added yet. Add your first trip.",safe_spent:"You already spent {h} today.",
+ earned:"Earned",costs:"Work costs",ok14:"Bills look safe for the next 14 days",short14:"Projected {x} shortfall in 14 days",
+ warn_data:"Only {n} of the last 14 days are recorded. This amount may change.",
+ add_earn:"Add earning",add_exp:"Add expense",vault:"Vault",vault_sub:"Emergency savings",vault_days:"Covers {n} days of needs",vault_target:"Goal: 15 days",
+ goals_title:"Your 3 safety goals",g1:"Rent and EMI paid on time",g2:"No costly loan needed",g3:"15 days of money in the vault",g3d:"{n} of 15 days",
+ st_target:"At target",st_risk:"At risk",st_info:"Not enough info",
+ weather_title:"Weather alert",weather:"Rain likely tomorrow. Earnings may be lower, so spend carefully.",weather_tag:"Sample forecast",
+ export_title:"Income summary",export_sub:"Your own record of earnings and costs",export_btn:"View and copy",
+ x_period:"Last 14 days",x_gross:"Total earned (gross)",x_work:"Work costs",x_net:"Money left (net)",x_days:"Days worked",x_note:"Self-reported by you. Not checked or verified by anyone.",
+ copy:"Copy summary",copied:"Copied",copy_fail:"Could not copy. Select the text and copy it.",close:"Close",
+ amount:"Amount",for_what:"What is it for?",cat_fare:"Trip fare",cat_cng:"Fuel / CNG",cat_vrent:"Vehicle rent",cat_other:"Other work cost",cat_home:"Home and food",
+ save:"Save",speak:"Speak the amount",listening:"Listening…",voice_na:"Voice is not available here. Type the amount.",saved:"Saved",
+ money_title:"Today's money",left_use:"Left to use",split_title:"Where your {n} goes",split_bills:"Keep for bills",split_vault:"Put in vault",split_spend:"Free to spend",
+ advice:"This is advice. No money moves.",why_btn:"Why this split?",
+ why1:"Rent {a} is due in 5 days.",why2:"Vehicle EMI {a} is due in 9 days.",why3:"Your daily earnings average about {a}, but they go up and down. So more is kept for bills.",why4:"Vehicle EMI is counted once, under bills.",why5:"Wrong entry? Remove it below and this updates.",
+ entries_title:"Today's entries",tag_in:"Earning",tag_work:"Work cost",tag_home:"Home",tag_em:"Emergency",remove:"Remove",empty:"No entries yet.",removed:"Removed",
+ take_out:"Take out money",vault_note:"You can take money out any time. Nothing is locked.",vault_local:"This is a record in the app. Your bank money does not move.",
+ out_title:"Take out from vault",out_amt:"How much?",out_why:"Why do you need it?",r_puncture:"Puncture",r_breakdown:"Breakdown",r_medical:"Medical",r_other:"Other",
+ change:"What changes",before:"Before",after:"After",days_unit:"{n} days",out_confirm:"Take out {x}",out_bad:"Not enough in the vault.",out_done:"Taken from vault",
+ refill_title:"Refill plan (optional)",refill_body:"Add up to {c} a day on days you earn extra. About {d} days to refill.",on:"On",off:"Off",
+ lab_title:"Safety test",lab_tag:"For judges",lab_intro:"Pick a hard time. We test your money through it, with and without EarnShield.",
+ tests_done:"{n} of 4 tests done",badge_locked:"Do all 4 tests to unlock Shield Master.",badge_title:"Shield Master unlocked!",badge_body:"You tested all 4 hard times. Now you know how your money holds up.",
+ pick_title:"Pick a hard time",sc_normal:"Normal year",sc_vehicle:"Vehicle off the road, 10 days",sc_lean:"Two bad months in a row",sc_both:"Both together",
+ go_test:"Test my money",go_next:"Try the next hard time",testing:"Testing…",running:"Testing month {m} of 12…",years_tested:"{n} years tested",
+ v_good:"EarnShield kept you safe in {a} of 100 years.",v_without:"Without it: {b} of 100.",v_little:"A very hard time. EarnShield helps a little.",v_none:"A very hard time. Neither plan stays safe.",v_pair:"With EarnShield: {a} of 100 years safe. Without: {b}.",
+ safe_def:"A safe year means every rent and EMI is paid on time.",more_safe:"+{d} more safe years",
+ borrow_title:"Borrowing needed in a year like this",borrow_less:"You would borrow {x} less.",
+ plan_title:"Your plan",plan_body:"In a hard time like this you may need to borrow about {x} a year. Keep about {d} extra aside each day for 30 days. This is an estimate, not guaranteed income.",plan_ok:"Your vault holds. No borrowing needed.",
+ details_btn:"See all numbers",col_base:"Without EarnShield",col_es:"With EarnShield",better:"Better",
+ m1:"Years with a missed bill",m1v:"{n} of 1,000",m2:"Days short of daily needs, per year",m3:"Borrowing needed, per year",m4:"Savings at year end",days_n:"{n} days",
+ lab_note:"Results come from a model with the assumptions below. They do not prove real savings.",assume_btn:"Assumptions",
+ a1:"About 85 of every 100 days are working days.",a2:"A working day leaves about {a} after costs, and some months are weaker.",a3:"Each month: rent {r} and EMI {e}. Daily needs {n}.",a4:"3 emergencies a year, {a} to {b} each.",a5:"Both plans spend about the same each day, so only the timing differs.",a6:"Yearly earnings are set above yearly needs, so gaps come from timing.",a7:"Seed {s}. The same seed gives the same result."
+},
+hi:{
+ lang_title:"अपनी भाषा चुनें",lang_sub:"आप इसे कभी भी बदल सकते हैं।",tagline:"जानिए, आज आप कितना सुरक्षित खर्च कर सकते हैं।",cont:"आगे बढ़ें",
+ rail_title:"स्क्रीन",s0:"भाषा",s1:"होम",s2:"पैसा और तिजोरी",s3:"सुरक्षा जाँच",
+ tab_home:"होम",tab_money:"पैसा",tab_lab:"सुरक्षा जाँच",
+ home_title:"आज",safe_label:"आज खर्च के लिए सुरक्षित",safe_why:"अगला किराया सुरक्षित रखने और तिजोरी में {v} रखने के बाद।",
+ safe_lean:"आज की कमाई बिलों की ज़रूरत से कम है। अतिरिक्त खर्च न करें।",safe_none:"अभी तक कमाई नहीं जोड़ी। अपनी पहली सवारी जोड़ें।",safe_spent:"आज आप {h} खर्च कर चुके हैं।",
+ earned:"कमाया",costs:"काम का खर्च",ok14:"अगले 14 दिनों के बिल सुरक्षित दिख रहे हैं",short14:"14 दिनों में {x} की कमी का अनुमान",
+ warn_data:"पिछले 14 में से सिर्फ़ {n} दिन दर्ज हैं। यह रकम बदल सकती है।",
+ add_earn:"कमाई जोड़ें",add_exp:"खर्च जोड़ें",vault:"तिजोरी",vault_sub:"आपात बचत",vault_days:"{n} दिन की ज़रूरतें पूरी होंगी",vault_target:"लक्ष्य: 15 दिन",
+ goals_title:"आपके 3 सुरक्षा लक्ष्य",g1:"किराया और EMI समय पर",g2:"महँगा कर्ज़ नहीं लेना पड़ेगा",g3:"तिजोरी में 15 दिन का पैसा",g3d:"15 में से {n} दिन",
+ st_target:"लक्ष्य पर",st_risk:"जोखिम में",st_info:"जानकारी कम है",
+ weather_title:"मौसम चेतावनी",weather:"कल बारिश की संभावना है। कमाई कम हो सकती है, सोच-समझकर खर्च करें।",weather_tag:"नमूना पूर्वानुमान",
+ export_title:"आय का सारांश",export_sub:"आपकी कमाई और खर्च का अपना रिकॉर्ड",export_btn:"देखें और कॉपी करें",
+ x_period:"पिछले 14 दिन",x_gross:"कुल कमाई",x_work:"काम का खर्च",x_net:"बचा पैसा (नेट)",x_days:"काम के दिन",x_note:"यह जानकारी आपने खुद दी है। किसी ने जाँची या सत्यापित नहीं की है।",
+ copy:"सारांश कॉपी करें",copied:"कॉपी हो गया",copy_fail:"कॉपी नहीं हो सका। टेक्स्ट चुनकर कॉपी करें।",close:"बंद करें",
+ amount:"रकम",for_what:"यह किसलिए है?",cat_fare:"सवारी का किराया",cat_cng:"ईंधन / CNG",cat_vrent:"गाड़ी का किराया",cat_other:"काम का दूसरा खर्च",cat_home:"घर और खाना",
+ save:"सहेजें",speak:"रकम बोलें",listening:"सुन रहा हूँ…",voice_na:"यहाँ आवाज़ उपलब्ध नहीं है। रकम लिखें।",saved:"सहेज लिया",
+ money_title:"आज का पैसा",left_use:"इस्तेमाल के लिए बचा",split_title:"आपके {n} कहाँ जाएँगे",split_bills:"बिलों के लिए रखें",split_vault:"तिजोरी में डालें",split_spend:"खर्च के लिए खुला",
+ advice:"यह सिर्फ़ सलाह है। कोई पैसा नहीं हिलता।",why_btn:"यह बँटवारा क्यों?",
+ why1:"किराया {a} — 5 दिन में देना है।",why2:"गाड़ी की EMI {a} — 9 दिन में देनी है।",why3:"आपकी रोज़ की औसत कमाई लगभग {a} है, पर यह ऊपर-नीचे होती रहती है। इसलिए बिलों के लिए ज़्यादा रखा गया है।",why4:"गाड़ी की EMI सिर्फ़ एक बार, बिलों में गिनी जाती है।",why5:"गलत एंट्री? नीचे से हटाएँ, यह अपने-आप बदल जाएगा।",
+ entries_title:"आज की एंट्री",tag_in:"कमाई",tag_work:"काम का खर्च",tag_home:"घर",tag_em:"आपात",remove:"हटाएँ",empty:"अभी कोई एंट्री नहीं।",removed:"हटा दिया",
+ take_out:"पैसे निकालें",vault_note:"आप कभी भी पैसे निकाल सकते हैं। कुछ भी लॉक नहीं है।",vault_local:"यह सिर्फ़ ऐप में हिसाब है। आपके बैंक का पैसा नहीं हिलता।",
+ out_title:"तिजोरी से निकालें",out_amt:"कितना?",out_why:"आपको इसकी ज़रूरत क्यों है?",r_puncture:"पंक्चर",r_breakdown:"गाड़ी ख़राब",r_medical:"दवा-इलाज",r_other:"दूसरा",
+ change:"क्या बदलेगा",before:"पहले",after:"बाद में",days_unit:"{n} दिन",out_confirm:"{x} निकालें",out_bad:"तिजोरी में इतना पैसा नहीं है।",out_done:"तिजोरी से निकाला",
+ refill_title:"फिर से भरने की योजना (वैकल्पिक)",refill_body:"ज़्यादा कमाई वाले दिनों में रोज़ {c} तक जोड़ें। लगभग {d} दिनों में भर जाएगा।",on:"चालू",off:"बंद",
+ lab_title:"सुरक्षा जाँच",lab_tag:"जजों के लिए",lab_intro:"एक कठिन समय चुनें। हम आपके पैसे की जाँच करते हैं, EarnShield के साथ और उसके बिना।",
+ tests_done:"4 में से {n} टेस्ट पूरे",badge_locked:"शील्ड मास्टर अनलॉक करने के लिए सभी 4 टेस्ट करें।",badge_title:"शील्ड मास्टर अनलॉक हुआ!",badge_body:"आपने चारों कठिन समय आज़मा लिए। अब आप जानते हैं कि आपका पैसा कैसे टिकता है।",
+ pick_title:"कठिन समय चुनें",sc_normal:"सामान्य साल",sc_vehicle:"गाड़ी 10 दिन बंद",sc_lean:"लगातार दो कमज़ोर महीने",sc_both:"दोनों साथ",
+ go_test:"मेरे पैसे की जाँच करें",go_next:"अगला कठिन समय आज़माएँ",testing:"जाँच जारी…",running:"महीना {m} / 12 की जाँच…",years_tested:"{n} साल जाँचे गए",
+ v_good:"EarnShield ने 100 में से {a} सालों में आपको सुरक्षित रखा।",v_without:"इसके बिना: 100 में से {b}।",v_little:"बहुत कठिन समय है। EarnShield थोड़ी मदद करता है।",v_none:"बहुत कठिन समय है। कोई भी तरीका सुरक्षित नहीं रहता।",v_pair:"EarnShield के साथ: 100 में से {a} साल सुरक्षित। उसके बिना: {b}।",
+ safe_def:"सुरक्षित साल यानी हर किराया और EMI समय पर चुकाया गया।",more_safe:"+{d} ज़्यादा सुरक्षित साल",
+ borrow_title:"ऐसे साल में उधार की ज़रूरत",borrow_less:"आपको {x} कम उधार लेना पड़ेगा।",
+ plan_title:"आपकी योजना",plan_body:"ऐसे कठिन समय में आपको साल में लगभग {x} उधार लेना पड़ सकता है। 30 दिन तक रोज़ लगभग {d} अलग रखें। यह अनुमान है, पक्की कमाई नहीं।",plan_ok:"आपकी तिजोरी टिकी रहती है। उधार की ज़रूरत नहीं।",
+ details_btn:"सभी आँकड़े देखें",col_base:"EarnShield के बिना",col_es:"EarnShield के साथ",better:"बेहतर",
+ m1:"बिल चूकने वाले साल",m1v:"1,000 में से {n}",m2:"रोज़ की ज़रूरत से कम वाले दिन, प्रति साल",m3:"उधार की ज़रूरत, प्रति साल",m4:"साल के अंत में बचत",days_n:"{n} दिन",
+ lab_note:"नतीजे एक मॉडल और नीचे दी गई मान्यताओं पर आधारित हैं। ये असली बचत का सबूत नहीं हैं।",assume_btn:"मान्यताएँ",
+ a1:"हर 100 में से लगभग 85 दिन काम के दिन हैं।",a2:"काम वाले दिन खर्च के बाद लगभग {a} बचता है, और कुछ महीने कमज़ोर रहते हैं।",a3:"हर महीने: किराया {r} और EMI {e}। रोज़ की ज़रूरत {n}।",a4:"साल में 3 आपात खर्च, हर एक {a} से {b} तक।",a5:"दोनों तरीके रोज़ लगभग बराबर खर्च करते हैं, इसलिए सिर्फ़ समय का फ़र्क़ है।",a6:"सालाना कमाई सालाना ज़रूरतों से ज़्यादा रखी गई है, इसलिए कमी समय की वजह से आती है।",a7:"सीड {s}। वही सीड वही नतीजा देता है।"
+},
+kn:{
+ lang_title:"ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆರಿಸಿ",lang_sub:"ನೀವು ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",tagline:"ಇಂದು ನೀವು ಎಷ್ಟು ಸುರಕ್ಷಿತವಾಗಿ ಖರ್ಚು ಮಾಡಬಹುದು ಎಂದು ತಿಳಿಯಿರಿ.",cont:"ಮುಂದುವರಿಯಿರಿ",
+ rail_title:"ಪರದೆಗಳು",s0:"ಭಾಷೆ",s1:"ಮುಖಪುಟ",s2:"ಹಣ ಮತ್ತು ತಿಜೋರಿ",s3:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
+ tab_home:"ಮುಖಪುಟ",tab_money:"ಹಣ",tab_lab:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
+ home_title:"ಇಂದು",safe_label:"ಇಂದು ಖರ್ಚಿಗೆ ಸುರಕ್ಷಿತ",safe_why:"ಮುಂದಿನ ಬಾಡಿಗೆಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿಟ್ಟು ತಿಜೋರಿಯಲ್ಲಿ {v} ಇಟ್ಟ ನಂತರ.",
+ safe_lean:"ಇಂದಿನ ಗಳಿಕೆ ಬಿಲ್‌ಗಳ ಅಗತ್ಯಕ್ಕಿಂತ ಕಡಿಮೆ ಇದೆ. ಹೆಚ್ಚುವರಿ ಖರ್ಚು ಮಾಡಬೇಡಿ.",safe_none:"ಇನ್ನೂ ಗಳಿಕೆ ಸೇರಿಸಿಲ್ಲ. ನಿಮ್ಮ ಮೊದಲ ಸವಾರಿ ಸೇರಿಸಿ.",safe_spent:"ಇಂದು ನೀವು ಈಗಾಗಲೇ {h} ಖರ್ಚು ಮಾಡಿದ್ದೀರಿ.",
+ earned:"ಗಳಿಸಿದ್ದು",costs:"ಕೆಲಸದ ಖರ್ಚು",ok14:"ಮುಂದಿನ 14 ದಿನಗಳ ಬಿಲ್‌ಗಳು ಸುರಕ್ಷಿತವಾಗಿವೆ",short14:"14 ದಿನಗಳಲ್ಲಿ {x} ಕೊರತೆಯ ಅಂದಾಜು",
+ warn_data:"ಕಳೆದ 14 ದಿನಗಳಲ್ಲಿ ಕೇವಲ {n} ದಿನಗಳು ದಾಖಲಾಗಿವೆ. ಈ ಮೊತ್ತ ಬದಲಾಗಬಹುದು.",
+ add_earn:"ಗಳಿಕೆ ಸೇರಿಸಿ",add_exp:"ಖರ್ಚು ಸೇರಿಸಿ",vault:"ತಿಜೋರಿ",vault_sub:"ತುರ್ತು ಉಳಿತಾಯ",vault_days:"{n} ದಿನಗಳ ಅಗತ್ಯ ಪೂರೈಸುತ್ತದೆ",vault_target:"ಗುರಿ: 15 ದಿನಗಳು",
+ goals_title:"ನಿಮ್ಮ 3 ಸುರಕ್ಷತಾ ಗುರಿಗಳು",g1:"ಬಾಡಿಗೆ ಮತ್ತು EMI ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ",g2:"ದುಬಾರಿ ಸಾಲ ಬೇಕಾಗುವುದಿಲ್ಲ",g3:"ತಿಜೋರಿಯಲ್ಲಿ 15 ದಿನಗಳ ಹಣ",g3d:"15 ರಲ್ಲಿ {n} ದಿನಗಳು",
+ st_target:"ಗುರಿಯಲ್ಲಿದೆ",st_risk:"ಅಪಾಯದಲ್ಲಿದೆ",st_info:"ಮಾಹಿತಿ ಸಾಲದು",
+ weather_title:"ಹವಾಮಾನ ಎಚ್ಚರಿಕೆ",weather:"ನಾಳೆ ಮಳೆ ಸಾಧ್ಯತೆ ಇದೆ. ಗಳಿಕೆ ಕಡಿಮೆಯಾಗಬಹುದು, ಎಚ್ಚರಿಕೆಯಿಂದ ಖರ್ಚು ಮಾಡಿ.",weather_tag:"ಮಾದರಿ ಮುನ್ಸೂಚನೆ",
+ export_title:"ಆದಾಯ ಸಾರಾಂಶ",export_sub:"ನಿಮ್ಮ ಗಳಿಕೆ ಮತ್ತು ಖರ್ಚಿನ ನಿಮ್ಮದೇ ದಾಖಲೆ",export_btn:"ನೋಡಿ ಮತ್ತು ಕಾಪಿ ಮಾಡಿ",
+ x_period:"ಕಳೆದ 14 ದಿನಗಳು",x_gross:"ಒಟ್ಟು ಗಳಿಕೆ",x_work:"ಕೆಲಸದ ಖರ್ಚು",x_net:"ಉಳಿದ ಹಣ (ನಿವ್ವಳ)",x_days:"ಕೆಲಸ ಮಾಡಿದ ದಿನಗಳು",x_note:"ಇದು ನೀವೇ ನೀಡಿದ ಮಾಹಿತಿ. ಯಾರೂ ಪರಿಶೀಲಿಸಿಲ್ಲ ಅಥವಾ ದೃಢೀಕರಿಸಿಲ್ಲ.",
+ copy:"ಸಾರಾಂಶ ಕಾಪಿ ಮಾಡಿ",copied:"ಕಾಪಿ ಆಗಿದೆ",copy_fail:"ಕಾಪಿ ಮಾಡಲಾಗಲಿಲ್ಲ. ಪಠ್ಯವನ್ನು ಆರಿಸಿ ಕಾಪಿ ಮಾಡಿ.",close:"ಮುಚ್ಚಿ",
+ amount:"ಮೊತ್ತ",for_what:"ಇದು ಯಾವುದಕ್ಕಾಗಿ?",cat_fare:"ಸವಾರಿ ಶುಲ್ಕ",cat_cng:"ಇಂಧನ / CNG",cat_vrent:"ವಾಹನ ಬಾಡಿಗೆ",cat_other:"ಕೆಲಸದ ಇತರ ಖರ್ಚು",cat_home:"ಮನೆ ಮತ್ತು ಊಟ",
+ save:"ಉಳಿಸಿ",speak:"ಮೊತ್ತವನ್ನು ಹೇಳಿ",listening:"ಕೇಳುತ್ತಿದ್ದೇನೆ…",voice_na:"ಇಲ್ಲಿ ಧ್ವನಿ ಲಭ್ಯವಿಲ್ಲ. ಮೊತ್ತವನ್ನು ಟೈಪ್ ಮಾಡಿ.",saved:"ಉಳಿಸಲಾಗಿದೆ",
+ money_title:"ಇಂದಿನ ಹಣ",left_use:"ಬಳಕೆಗೆ ಉಳಿದದ್ದು",split_title:"ನಿಮ್ಮ {n} ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತದೆ",split_bills:"ಬಿಲ್‌ಗಳಿಗೆ ಇಡಿ",split_vault:"ತಿಜೋರಿಗೆ ಹಾಕಿ",split_spend:"ಖರ್ಚಿಗೆ ಮುಕ್ತ",
+ advice:"ಇದು ಸಲಹೆ ಮಾತ್ರ. ಯಾವುದೇ ಹಣ ವರ್ಗಾವಣೆಯಾಗುವುದಿಲ್ಲ.",why_btn:"ಈ ಹಂಚಿಕೆ ಏಕೆ?",
+ why1:"ಬಾಡಿಗೆ {a} — 5 ದಿನಗಳಲ್ಲಿ ಕೊಡಬೇಕು.",why2:"ವಾಹನ EMI {a} — 9 ದಿನಗಳಲ್ಲಿ ಕೊಡಬೇಕು.",why3:"ನಿಮ್ಮ ದಿನದ ಸರಾಸರಿ ಗಳಿಕೆ ಸುಮಾರು {a}, ಆದರೆ ಅದು ಏರಿಳಿತವಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ಬಿಲ್‌ಗಳಿಗೆ ಹೆಚ್ಚು ಇಡಲಾಗಿದೆ.",why4:"ವಾಹನ EMI ಅನ್ನು ಒಮ್ಮೆ ಮಾತ್ರ, ಬಿಲ್‌ಗಳಲ್ಲಿ ಲೆಕ್ಕ ಮಾಡಲಾಗುತ್ತದೆ.",why5:"ತಪ್ಪಾದ ದಾಖಲೆ? ಕೆಳಗಿನಿಂದ ತೆಗೆಯಿರಿ, ಇದು ತಾನಾಗಿ ಬದಲಾಗುತ್ತದೆ.",
+ entries_title:"ಇಂದಿನ ದಾಖಲೆಗಳು",tag_in:"ಗಳಿಕೆ",tag_work:"ಕೆಲಸದ ಖರ್ಚು",tag_home:"ಮನೆ",tag_em:"ತುರ್ತು",remove:"ತೆಗೆಯಿರಿ",empty:"ಇನ್ನೂ ದಾಖಲೆಗಳಿಲ್ಲ.",removed:"ತೆಗೆದಿದೆ",
+ take_out:"ಹಣ ತೆಗೆಯಿರಿ",vault_note:"ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಹಣ ತೆಗೆಯಬಹುದು. ಯಾವುದೂ ಲಾಕ್ ಆಗಿಲ್ಲ.",vault_local:"ಇದು ಆ್ಯಪ್‌ನೊಳಗಿನ ಲೆಕ್ಕ ಮಾತ್ರ. ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಹಣ ಚಲಿಸುವುದಿಲ್ಲ.",
+ out_title:"ತಿಜೋರಿಯಿಂದ ತೆಗೆಯಿರಿ",out_amt:"ಎಷ್ಟು?",out_why:"ನಿಮಗೆ ಇದು ಏಕೆ ಬೇಕು?",r_puncture:"ಪಂಕ್ಚರ್",r_breakdown:"ವಾಹನ ಕೆಟ್ಟಿದೆ",r_medical:"ಆರೋಗ್ಯ",r_other:"ಇತರೆ",
+ change:"ಏನು ಬದಲಾಗುತ್ತದೆ",before:"ಮೊದಲು",after:"ನಂತರ",days_unit:"{n} ದಿನ",out_confirm:"{x} ತೆಗೆಯಿರಿ",out_bad:"ತಿಜೋರಿಯಲ್ಲಿ ಇಷ್ಟು ಹಣ ಇಲ್ಲ.",out_done:"ತಿಜೋರಿಯಿಂದ ತೆಗೆಯಲಾಗಿದೆ",
+ refill_title:"ಮತ್ತೆ ತುಂಬುವ ಯೋಜನೆ (ಐಚ್ಛಿಕ)",refill_body:"ಹೆಚ್ಚು ಗಳಿಸುವ ದಿನಗಳಲ್ಲಿ ದಿನಕ್ಕೆ {c} ವರೆಗೆ ಸೇರಿಸಿ. ಸುಮಾರು {d} ದಿನಗಳಲ್ಲಿ ತುಂಬುತ್ತದೆ.",on:"ಆನ್",off:"ಆಫ್",
+ lab_title:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",lab_tag:"ತೀರ್ಪುಗಾರರಿಗಾಗಿ",lab_intro:"ಒಂದು ಕಷ್ಟದ ಸಮಯವನ್ನು ಆರಿಸಿ. EarnShield ಜೊತೆ ಮತ್ತು ಇಲ್ಲದೆ ನಿಮ್ಮ ಹಣವನ್ನು ಪರೀಕ್ಷಿಸುತ್ತೇವೆ.",
+ tests_done:"4 ರಲ್ಲಿ {n} ಪರೀಕ್ಷೆಗಳು ಮುಗಿದಿವೆ",badge_locked:"ಶೀಲ್ಡ್ ಮಾಸ್ಟರ್ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ಎಲ್ಲಾ 4 ಪರೀಕ್ಷೆಗಳನ್ನು ಮಾಡಿ.",badge_title:"ಶೀಲ್ಡ್ ಮಾಸ್ಟರ್ ಅನ್‌ಲಾಕ್ ಆಯಿತು!",badge_body:"ನೀವು ಎಲ್ಲಾ 4 ಕಷ್ಟದ ಸಮಯಗಳನ್ನು ಪರೀಕ್ಷಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಹಣ ಹೇಗೆ ತಡೆದುಕೊಳ್ಳುತ್ತದೆ ಎಂದು ಈಗ ನಿಮಗೆ ಗೊತ್ತು.",
+ pick_title:"ಕಷ್ಟದ ಸಮಯ ಆರಿಸಿ",sc_normal:"ಸಾಮಾನ್ಯ ವರ್ಷ",sc_vehicle:"ವಾಹನ 10 ದಿನ ನಿಂತಿದೆ",sc_lean:"ಸತತ ಎರಡು ಕಷ್ಟದ ತಿಂಗಳು",sc_both:"ಎರಡೂ ಒಟ್ಟಿಗೆ",
+ go_test:"ನನ್ನ ಹಣವನ್ನು ಪರೀಕ್ಷಿಸಿ",go_next:"ಮುಂದಿನ ಕಷ್ಟದ ಸಮಯ ಪ್ರಯತ್ನಿಸಿ",testing:"ಪರೀಕ್ಷೆ ನಡೆಯುತ್ತಿದೆ…",running:"ತಿಂಗಳು {m} / 12 ಪರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ…",years_tested:"{n} ವರ್ಷಗಳನ್ನು ಪರೀಕ್ಷಿಸಲಾಗಿದೆ",
+ v_good:"100 ರಲ್ಲಿ {a} ವರ್ಷಗಳಲ್ಲಿ EarnShield ನಿಮ್ಮನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಇಟ್ಟಿತು.",v_without:"ಇದಿಲ್ಲದೆ: 100 ರಲ್ಲಿ {b}.",v_little:"ತುಂಬಾ ಕಷ್ಟದ ಸಮಯ. EarnShield ಸ್ವಲ್ಪ ಸಹಾಯ ಮಾಡುತ್ತದೆ.",v_none:"ತುಂಬಾ ಕಷ್ಟದ ಸಮಯ. ಯಾವ ವಿಧಾನವೂ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿಯುವುದಿಲ್ಲ.",v_pair:"EarnShield ಜೊತೆ: 100 ರಲ್ಲಿ {a} ವರ್ಷ ಸುರಕ್ಷಿತ. ಇಲ್ಲದೆ: {b}.",
+ safe_def:"ಸುರಕ್ಷಿತ ವರ್ಷ ಎಂದರೆ ಪ್ರತಿ ಬಾಡಿಗೆ ಮತ್ತು EMI ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಕಟ್ಟಲಾಗಿದೆ.",more_safe:"+{d} ಹೆಚ್ಚು ಸುರಕ್ಷಿತ ವರ್ಷಗಳು",
+ borrow_title:"ಇಂತಹ ವರ್ಷದಲ್ಲಿ ಬೇಕಾಗುವ ಸಾಲ",borrow_less:"ನೀವು {x} ಕಡಿಮೆ ಸಾಲ ಮಾಡಬೇಕಾಗುತ್ತದೆ.",
+ plan_title:"ನಿಮ್ಮ ಯೋಜನೆ",plan_body:"ಇಂತಹ ಕಷ್ಟದ ಸಮಯದಲ್ಲಿ ವರ್ಷಕ್ಕೆ ಸುಮಾರು {x} ಸಾಲ ಮಾಡಬೇಕಾಗಬಹುದು. 30 ದಿನ ದಿನಕ್ಕೆ ಸುಮಾರು {d} ಬದಿಗಿಡಿ. ಇದು ಅಂದಾಜು ಮಾತ್ರ, ಖಚಿತ ಗಳಿಕೆ ಅಲ್ಲ.",plan_ok:"ನಿಮ್ಮ ತಿಜೋರಿ ಉಳಿಯುತ್ತದೆ. ಸಾಲದ ಅಗತ್ಯವಿಲ್ಲ.",
+ details_btn:"ಎಲ್ಲಾ ಅಂಕಿಅಂಶ ನೋಡಿ",col_base:"EarnShield ಇಲ್ಲದೆ",col_es:"EarnShield ಜೊತೆ",better:"ಉತ್ತಮ",
+ m1:"ಬಿಲ್ ತಪ್ಪಿದ ವರ್ಷಗಳು",m1v:"1,000 ರಲ್ಲಿ {n}",m2:"ದಿನದ ಅಗತ್ಯಕ್ಕಿಂತ ಕಡಿಮೆ ಇದ್ದ ದಿನಗಳು, ವರ್ಷಕ್ಕೆ",m3:"ಸಾಲದ ಅಗತ್ಯ, ವರ್ಷಕ್ಕೆ",m4:"ವರ್ಷದ ಕೊನೆಯ ಉಳಿತಾಯ",days_n:"{n} ದಿನ",
+ lab_note:"ಫಲಿತಾಂಶಗಳು ಒಂದು ಮಾದರಿ ಮತ್ತು ಕೆಳಗಿನ ಊಹೆಗಳನ್ನು ಆಧರಿಸಿವೆ. ಇವು ನಿಜವಾದ ಉಳಿತಾಯದ ಪುರಾವೆ ಅಲ್ಲ.",assume_btn:"ಊಹೆಗಳು",
+ a1:"ಪ್ರತಿ 100 ದಿನಗಳಲ್ಲಿ ಸುಮಾರು 85 ದಿನ ಕೆಲಸದ ದಿನಗಳು.",a2:"ಕೆಲಸದ ದಿನದಲ್ಲಿ ಖರ್ಚಿನ ನಂತರ ಸುಮಾರು {a} ಉಳಿಯುತ್ತದೆ, ಕೆಲವು ತಿಂಗಳು ದುರ್ಬಲವಾಗಿರುತ್ತವೆ.",a3:"ಪ್ರತಿ ತಿಂಗಳು: ಬಾಡಿಗೆ {r} ಮತ್ತು EMI {e}. ದಿನದ ಅಗತ್ಯ {n}.",a4:"ವರ್ಷಕ್ಕೆ 3 ತುರ್ತು ಖರ್ಚುಗಳು, ಪ್ರತಿಯೊಂದು {a} ರಿಂದ {b}.",a5:"ಎರಡೂ ವಿಧಾನಗಳು ದಿನಕ್ಕೆ ಸುಮಾರು ಒಂದೇ ಮೊತ್ತ ಖರ್ಚು ಮಾಡುತ್ತವೆ, ಆದ್ದರಿಂದ ಸಮಯದ ವ್ಯತ್ಯಾಸ ಮಾತ್ರ.",a6:"ವಾರ್ಷಿಕ ಗಳಿಕೆ ವಾರ್ಷಿಕ ಅಗತ್ಯಕ್ಕಿಂತ ಹೆಚ್ಚು ಇಡಲಾಗಿದೆ, ಆದ್ದರಿಂದ ಕೊರತೆ ಸಮಯದಿಂದ ಬರುತ್ತದೆ.",a7:"ಸೀಡ್ {s}. ಅದೇ ಸೀಡ್ ಅದೇ ಫಲಿತಾಂಶ ನೀಡುತ್ತದೆ."
+}};
+
+/* ---------- state ---------- */
+const BILLS_DAY=880,NEED_DAY=560,RENT=8000,EMI=6000,TARGET_DAYS=15;
+const BILLS_FUND=6400,VAULT_BASE=6200,LEAN_INCOME_DAY=700;
+const HIST={gross:15400,work:6050,days:8};
+const S={lang:'en',screen:0,why:false,assume:false,refill:false,sheet:null,toast:'',nextId:6,
+ entries:[
+  {id:1,kind:'fare',cat:'cat_fare',amt:1100},{id:2,kind:'fare',cat:'cat_fare',amt:900},{id:3,kind:'fare',cat:'cat_fare',amt:400},
+  {id:4,kind:'work',cat:'cat_cng',amt:600},{id:5,kind:'work',cat:'cat_vrent',amt:250}],
+ lab:{pick:'normal',phase:'idle',month:0,res:{},done:{},p:1,fresh:false,details:false,newBadge:false}};
+
+/* ---------- helpers ---------- */
+const t=(k,v)=>{let s=(I[S.lang][k]??I.en[k]??k);if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s};
+const fmt=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const plus=n=>'+'+fmt(n),minus=n=>'−'+fmt(n);
+const $=s=>document.querySelector(s);
+const P={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+ wallet:'<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1.2"/>',
+ flask:'<path d="M9 3h6"/><path d="M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2.2h12.4a1.5 1.5 0 0 0 1.3-2.2L14 9V3"/><path d="M7.5 15h9"/>',
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.3v.1"/>',dash:'<path d="M7 12h10"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.1"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',chev:'<path d="M9 5l7 7-7 7"/>',down:'<path d="M5 9l7 7 7-7"/>',
+ rain:'<path d="M7 16a4 4 0 1 1 1-7.9A5.5 5.5 0 0 1 18.5 10 3.5 3.5 0 0 1 17.5 16"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/>',
+ doc:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+ copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',refresh:'<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
+ car:'<path d="M5 16v-5l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><path d="M5 11h14"/>',
+ cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+ stack:'<path d="M12 4l9 5-9 5-9-5z"/><path d="M3 14l9 5 9-5"/>',
+ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'};
+const ic=(n,s=24,w=2.6)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+
+/* ---------- money logic ---------- */
+function calc(){
+ const sum=k=>S.entries.filter(e=>e.kind===k).reduce((a,e)=>a+e.amt,0);
+ const gross=sum('fare'),work=sum('work'),house=sum('house'),withdrawn=sum('emergency');
+ const net=gross-work;
+ let bills=0,vaultA=0,spendA=0;
+ if(net>0){bills=Math.min(net,BILLS_DAY);const rem=net-bills;
+  vaultA=Math.min(rem,Math.round((250+Math.max(0,net-1550)*0.4)/10)*10);spendA=rem-vaultA;}
+ const spendLeft=Math.max(0,spendA-house);
+ const vault=VAULT_BASE-withdrawn;
+ const runway=Math.floor(vault/NEED_DAY);
+ const days=HIST.days+(gross>0?1:0);
+ const avg=(HIST.gross-HIST.work+Math.max(net,0))/days;
+ return {gross,work,house,withdrawn,net,bills,vaultA,spendA,spendLeft,vault,runway,days,avg,shortfall:shortfallFor(vault)};
+}
+function shortfallFor(vault){
+ const need=RENT+EMI+14*NEED_DAY,have=BILLS_FUND+vault+14*LEAN_INCOME_DAY;
+ return Math.max(0,need-have);
+}
+
+/* ---------- stress-test engine (same seeded events for both plans) ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let x=Math.imul(a^a>>>15,1|a);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
+const SIM={N:1000,D:365,E:NEED_DAY,START:16000,WORK:0.85,MEAN:1500,SHOCKS:3,SH_LO:2000,SH_HI:8000};
+function simulate(seed,opt){
+ const {N,D,E,START}=SIM,r=mulberry32(seed);
+ const gauss=()=>{const u=1-r(),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+ const due=new Array(D).fill(0);
+ for(let m=0;m<12;m++){const d=Math.round(m*30.4);if(d<D)due[d]+=RENT;const e=Math.min(D-1,d+5);due[e]+=EMI}
+ const pre=[0];for(let d=0;d<D;d++)pre.push(pre[d]+due[d]);
+ const within=(d,n)=>pre[Math.min(D,d+n)]-pre[d];
+ const A={m:0,s:0,b:0,e:0},B={m:0,s:0,b:0,e:0};
+ for(let y=0;y<N;y++){
+  const net=new Array(D),shock=new Array(D).fill(0),mk=[];
+  for(let m=0;m<13;m++)mk.push(Math.min(1.25,Math.max(0.65,1+0.18*gauss())));
+  for(let d=0;d<D;d++){net[d]=r()<SIM.WORK?Math.max(250,SIM.MEAN*mk[Math.floor(d/30.4)]*Math.exp(0.32*gauss()-0.05)):0}
+  for(let k=0;k<SIM.SHOCKS;k++){shock[Math.floor(r()*D)]+=SIM.SH_LO+Math.round(r()*(SIM.SH_HI-SIM.SH_LO))}
+  const need=E*D+within(0,D)+shock.reduce((a,b)=>a+b,0),tot=net.reduce((a,b)=>a+b,0);
+  if(tot<need*1.03){const f=need*1.03/tot;for(let d=0;d<D;d++)net[d]*=f}
+  if(opt.vehicle){const s=Math.floor(r()*(D-10));for(let d=s;d<s+10;d++)net[d]=0}
+  if(opt.lean){const s=Math.floor(r()*(D-60));for(let d=s;d<s+60;d++)net[d]*=0.55}
+  for(const plan of ['base','es']){
+   let cash=START,missed=0,short=0,borrow=0;
+   for(let d=0;d<D;d++){
+    cash+=net[d];
+    const pay=(a,bill)=>{if(cash>=a)cash-=a;else{borrow+=a-cash;cash=0;if(bill)missed++}};
+    if(due[d])pay(due[d],true);
+    if(shock[d])pay(shock[d],false);
+    let spend;
+    if(plan==='base')spend=Math.max(E,0.5*net[d]);
+    else spend=E+Math.min(250,Math.max(0,(cash-(within(d,14)+15*E))*0.1));
+    const paid=Math.min(cash,spend);
+    if(paid<E){short++;borrow+=E-paid}
+    cash-=paid;
+   }
+   const T=plan==='base'?A:B;if(missed>0)T.m++;T.s+=short;T.b+=borrow;T.e+=cash/E;
+  }
+ }
+ const f=T=>({missed:T.m,short:T.s/N,borrow:T.b/N,end:T.e/N});
+ return {base:f(A),es:f(B)};
+}
+const SEED=2026,SCEN={normal:{},vehicle:{vehicle:true},lean:{lean:true},both:{vehicle:true,lean:true}},ORDER=['normal','vehicle','lean','both'],SCICON={normal:'sun',vehicle:'car',lean:'cal',both:'stack'};
+
+/* ---------- views ---------- */
+const langSeg=()=>`<div class="lang" role="group" aria-label="Language">${Object.keys(LANGS).map(k=>`<button data-a="lang" data-v="${k}" aria-pressed="${S.lang===k}" aria-label="${LANGS[k].name}" lang="${k}">${LANGS[k].code}</button>`).join('')}</div>`;
+const header=(title,sub)=>`<div class="head"><div><h1>${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>${langSeg()}</div>`;
+const pill=(s)=>s==='target'?`<span class="pill ok">${ic('check',16,3)}${t('st_target')}</span>`:s==='risk'?`<span class="pill bad">${ic('alert',16,3)}${t('st_risk')}</span>`:`<span class="pill na">${ic('dash',16,3)}${t('st_info')}</span>`;
+const dateStr=()=>{try{return new Intl.DateTimeFormat(LANGS[S.lang].loc,{weekday:'long',day:'numeric',month:'long'}).format(new Date())}catch(e){return ''}};
+
+function viewLang(){
+ return `<div class="view lang-screen">
+  <div style="display:flex;flex-direction:column;gap:28px">
+   <div class="logo"><span class="mark">${ic('shield',28,2.4)}</span>EarnShield</div>
+   <div style="display:flex;flex-direction:column;gap:10px"><h1>${t('lang_title')}</h1><p class="cap">${t('tagline')}</p></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+   ${Object.keys(LANGS).map(k=>`<button class="tile" data-a="lang" data-v="${k}" aria-pressed="${S.lang===k}" lang="${k}"><span class="g">${k==='en'?'A':k==='hi'?'अ':'ಅ'}</span><span class="nm">${LANGS[k].name}</span><span class="ck">${ic('check',18,3.4)}</span></button>`).join('')}
+   <p class="cap" style="text-align:center">${t('lang_sub')}</p>
+  </div>
+  <button class="btn" data-a="go" data-v="1">${t('cont')}${ic('chev',22,3)}</button>
+ </div>`;
+}
+
+function viewHome(){
+ const c=calc();
+ let why=c.net<=0?t('safe_none'):c.net<BILLS_DAY?t('safe_lean'):t('safe_why',{v:fmt(c.vaultA)});
+ if(c.house>0&&c.net>=BILLS_DAY)why+=' '+t('safe_spent',{h:fmt(c.house)});
+ const ok=c.shortfall===0;
+ const goals=[['g1',ok?'target':'risk',''],['g2','info',''],['g3',c.runway>=TARGET_DAYS?'target':'risk',t('g3d',{n:c.runway})]];
+ return `<div class="view">
+  ${header(t('home_title'),dateStr())}
+  <section class="hero" aria-label="${t('safe_label')}">
+   <div class="lbl">${t('safe_label')}</div>
+   <div class="amt num">${fmt(c.spendLeft)}</div>
+   <p>${why}</p>
+   <div class="status ${ok?'pos-d':'neg-d'}">${ic(ok?'check':'alert',20,3)}<span>${ok?t('ok14'):t('short14',{x:fmt(c.shortfall)})}</span></div>
+   <hr>
+   <div class="hero-row"><div><span>${t('earned')}</span><b class="pos-d num">${plus(c.gross)}</b></div><div><span>${t('costs')}</span><b class="neg-d num">${minus(c.work)}</b></div></div>
+  </section>
+  <div class="alert">${ic('rain',28,2.4)}<div><div style="font-size:18px;font-weight:800">${t('weather_title')}</div><div>${t('weather')}</div><div class="tag">${t('weather_tag')}</div></div></div>
+  <div class="note">${ic('info',22)}<span>${t('warn_data',{n:c.days})}</span></div>
+  <div class="two">
+   <button class="btn" data-a="openAdd" data-v="fare"><span class="dot p">${ic('plus',20,3.2)}</span>${t('add_earn')}</button>
+   <button class="btn" data-a="openAdd" data-v="expense"><span class="dot n">${ic('minus',20,3.2)}</span>${t('add_exp')}</button>
+  </div>
+  <button class="card link-card" data-a="go" data-v="2">
+   <div class="row" style="min-height:0"><div><h2>${t('vault')}</h2><div class="cap">${t('vault_sub')}</div></div>${ic('chev',22,3)}</div>
+   <div class="amt num" style="font-size:40px">${fmt(c.vault)}</div>
+   <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${TARGET_DAYS}" aria-valuenow="${Math.min(c.runway,TARGET_DAYS)}"><i style="width:${Math.min(100,c.runway/TARGET_DAYS*100)}%"></i></div>
+   <div class="row" style="min-height:0"><span>${t('vault_days',{n:c.runway})}</span><span class="cap">${t('vault_target')}</span></div>
+  </button>
+  <section class="card"><h2>${t('goals_title')}</h2>
+   <div>${goals.map(g=>`<div class="goal"><span>${t(g[0])}</span>${g[2]?`<span class="cap">${g[2]}</span>`:''}${pill(g[1])}</div>`).join('')}</div>
+  </section>
+  <button class="card link-card" data-a="openExport"><div class="row" style="min-height:0"><div style="display:flex;gap:14px;align-items:center">${ic('doc',28)}<div><h2>${t('export_title')}</h2><div class="cap">${t('export_sub')}</div></div></div>${ic('chev',22,3)}</div></button>
+ </div>`;
+}
+
+function viewMoney(){
+ const c=calc();
+ const tot=Math.max(c.net,1);
+ const w=v=>c.net>0?(v/tot*100):0;
+ const tag=e=>e.kind==='fare'?t('tag_in'):e.kind==='work'?t('tag_work'):e.kind==='house'?t('tag_home'):t('tag_em');
+ const lbl=e=>e.kind==='emergency'?t(e.cat):t(e.cat);
+ const rows=S.entries.length?S.entries.map(e=>{const isIn=e.kind==='fare';
+  return `<div class="row"><div><div>${lbl(e)}</div><div class="cap">${tag(e)}</div></div>
+   <div style="display:flex;align-items:center;gap:4px"><b class="num ${isIn?'pos':'neg'}" style="font-size:19px;font-weight:800">${isIn?plus(e.amt):minus(e.amt)}</b>
+   <button class="icon-btn" data-a="remove" data-v="${e.id}" aria-label="${t('remove')}">${ic('trash',22)}</button></div></div>`}).join(''):`<p class="cap">${t('empty')}</p>`;
+ const refillDays=Math.ceil(c.withdrawn/100);
+ return `<div class="view">
+  ${header(t('money_title'),dateStr())}
+  <section class="card">
+   <div class="row"><span>${t('earned')}</span><span class="big pos num">${plus(c.gross)}</span></div>
+   <div class="row"><span>${t('costs')}</span><span class="big neg num">${minus(c.work)}</span></div>
+   <div class="row"><b style="font-size:19px;font-weight:800">${t('left_use')}</b><span class="num" style="font-size:30px;font-weight:800">${fmt(Math.max(c.net,0))}</span></div>
+  </section>
+  <section class="card">
+   <h2>${t('split_title',{n:fmt(Math.max(c.net,0))})}</h2>
+   <div class="split" aria-hidden="true"><i class="sw1" style="width:${w(c.bills)}%"></i><i class="sw2" style="width:${w(c.vaultA)}%"></i><i class="sw3" style="width:${w(c.spendA)}%"></i></div>
+   <div>
+    <div class="row"><span class="keyrow"><i class="key sw1"></i>${t('split_bills')}</span><b class="num" style="font-size:20px;font-weight:800">${fmt(c.bills)}</b></div>
+    <div class="row"><span class="keyrow"><i class="key sw2"></i>${t('split_vault')}</span><b class="num" style="font-size:20px;font-weight:800">${fmt(c.vaultA)}</b></div>
+    <div class="row"><span class="keyrow"><i class="key sw3"></i>${t('split_spend')}</span><b class="num" style="font-size:20px;font-weight:800">${fmt(c.spendA)}</b></div>
+   </div>
+   <p class="cap">${t('advice')}</p>
+   <button class="acc" data-a="why" aria-expanded="${S.why}">${t('why_btn')}${ic('down',22,3)}</button>
+   ${S.why?`<div class="bullets"><div>${t('why1',{a:fmt(RENT)})}</div><div>${t('why2',{a:fmt(EMI)})}</div><div>${t('why3',{a:fmt(c.avg)})}</div><div>${t('why4')}</div><div>${t('why5')}</div></div>`:''}
+  </section>
+  <section class="hero on-black">
+   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:20px;font-weight:800">${t('vault')}</div><div>${t('vault_sub')}</div></div></div>
+   <div class="amt num" style="font-size:48px">${fmt(c.vault)}</div>
+   <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${TARGET_DAYS}" aria-valuenow="${Math.min(c.runway,TARGET_DAYS)}"><i style="width:${Math.min(100,c.runway/TARGET_DAYS*100)}%"></i></div>
+   <div class="row" style="min-height:0"><span>${t('vault_days',{n:c.runway})}</span><span>${t('vault_target')}</span></div>
+   <button class="btn on-dark" data-a="openOut">${t('take_out')}</button>
+   <p style="font-size:15px">${t('vault_note')}</p>
+   <p style="font-size:15px">${t('vault_local')}</p>
+  </section>
+  ${c.withdrawn>0?`<section class="card"><h2>${t('refill_title')}</h2><p>${t('refill_body',{c:fmt(100),d:refillDays})}</p>
+   <button class="sw" role="switch" aria-checked="${S.refill}" data-a="refill"><span>${S.refill?t('on'):t('off')}</span><span class="trk"></span></button></section>`:''}
+  <section class="card"><h2>${t('entries_title')}</h2><div>${rows}</div></section>
+ </div>`;
+}
+
+/* ---- stress lab (pick a hard time, run, celebrate) ---- */
+const safe100=r=>Math.round((1000-r.missed)/10);
+function cmp(x,y,hi){const tol=Math.max(0.5,0.05*Math.max(x,y));if(Math.abs(x-y)<=tol)return ['',''];return ((x<y)!==hi)?['b','w']:['w','b']}
+function cell(txt,state){return `<div style="${state==='b'?'border-color:var(--pos)':state==='w'?'border-color:var(--neg)':''}"><b class="num ${state==='b'?'pos':state==='w'?'neg':''}">${txt}</b>${state==='b'?`<small class="pos">${ic('check',14,3.4)}${t('better')}</small>`:''}</div>`}
+function metric(label,fa,fb,x,y,hi){const [sa,sb]=cmp(x,y,hi);return `<div class="metric"><span>${label}</span><div class="res-cells">${cell(fa,sa)}${cell(fb,sb)}</div></div>`}
+function runHTML(){const L=S.lab,n=Math.round(L.month/12*1000);
+ return `<section class="hero"><div class="lbl">${t('running',{m:Math.max(1,L.month)})}</div><div class="segs" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i class="${i<L.month?'on':''}"></i>`).join('')}</div><div class="amt num" style="font-size:40px">${t('years_tested',{n:n.toLocaleString('en-IN')})}</div></section>`}
+function resultHTML(){
+ const L=S.lab,r=L.res[L.pick];if(!r||!L.done[L.pick])return '';
+ const p=L.fresh?L.p:1,pop=L.fresh?' pop':'';
+ const sb=safe100(r.base),se=safe100(r.es),d=se-sb,tier=d>=10?'good':d>=1?'little':'none';
+ const wb=Math.round(sb*p),we=Math.round(se*p),dv=Math.round(Math.max(d,0)*p);
+ const head=tier==='good'?t('v_good',{a:se}):tier==='little'?t('v_little'):t('v_none');
+ const sub=tier==='good'?t('v_without',{b:sb}):t('v_pair',{a:se,b:sb});
+ const bb=Math.round(r.base.borrow),be=Math.round(r.es.borrow),less=bb-be,showLess=less>=Math.max(50,0.05*bb);
+ const d1=v=>t('days_n',{n:(Math.round(v*10)/10).toFixed(1)}),dEnd=v=>t('days_n',{n:Math.round(v)});
+ const perDay=Math.ceil(r.es.borrow/30/10)*10;
+ return `<section class="card" aria-live="polite">
+  <div style="display:flex;gap:14px;align-items:center"><span class="badge ${tier==='good'?'good':'meh'}${pop}">${ic(tier==='good'?'check':'shield',32,3)}</span><h2 class="verdict">${head}</h2></div>
+  <p class="cap">${sub}</p>
+  <div class="barrow"><div class="bl"><span>${t('col_base')}</span><b class="num">${wb} / 100</b></div><div class="track"><i style="width:${wb}%;background:#8A8A83"></i></div></div>
+  <div class="barrow"><div class="bl"><span>${t('col_es')}</span><b class="num pos">${we} / 100</b></div><div class="track"><i style="width:${we}%;background:var(--pos)"></i></div></div>
+  <p class="cap">${t('safe_def')}</p>
+  ${d>=1?`<span class="pill ok big-pill${pop}">${ic('plus',20,3.4)}${t('more_safe',{d:dv}).replace(/^\+/,'')}</span>`:''}
+  <div class="metric" style="border-top:1px solid var(--line)"><span>${t('borrow_title')}</span><div class="res-cells"><div><b class="num ${showLess?'neg':''}">${fmt(bb)}</b></div><div style="${showLess?'border-color:var(--pos)':''}"><b class="num ${showLess?'pos':''}">${fmt(be)}</b></div></div>${showLess?`<div class="say pos">${ic('check',22,3)}<span>${t('borrow_less',{x:fmt(less)})}</span></div>`:''}</div>
+ </section>
+ <section class="warnbox"><h2>${t('plan_title')}</h2><div class="st ${be>0?'neg-d':'pos-d'}">${ic(be>0?'alert':'check',22,3)}<span style="color:#fff">${be>0?t('plan_body',{x:fmt(r.es.borrow),d:fmt(perDay)}):t('plan_ok')}</span></div></section>
+ <section class="card"><button class="acc" data-a="labDetails" aria-expanded="${L.details}">${t('details_btn')}${ic('down',22,3)}</button>
+  ${L.details?`<div class="res-head"><div>${t('col_base')}</div><div class="es">${t('col_es')}</div></div>
+   ${metric(t('m1'),t('m1v',{n:r.base.missed}),t('m1v',{n:r.es.missed}),r.base.missed,r.es.missed,false)}
+   ${metric(t('m2'),d1(r.base.short),d1(r.es.short),r.base.short,r.es.short,false)}
+   ${metric(t('m3'),fmt(r.base.borrow),fmt(r.es.borrow),Math.round(r.base.borrow),Math.round(r.es.borrow),false)}
+   ${metric(t('m4'),dEnd(r.base.end),dEnd(r.es.end),Math.round(r.base.end),Math.round(r.es.end),true)}`:''}
+ </section>`;
+}
+function viewLab(){
+ const L=S.lab,nDone=ORDER.filter(k=>L.done[k]).length,all=nDone===4,running=L.phase==='run';
+ const remaining=ORDER.filter(k=>!L.done[k]).length;
+ let btn='';
+ if(running)btn=`<button class="btn" disabled>${t('testing')}</button>`;
+ else if(!L.done[L.pick])btn=`<button class="btn" data-a="runTest">${t('go_test')}</button>`;
+ else if(remaining>0)btn=`<button class="btn" data-a="nextTest">${t('go_next')}${ic('chev',22,3)}</button>`;
+ return `<div class="view">
+  ${header(t('lab_title'))}
+  <div class="pill na" style="align-self:flex-start">${t('lab_tag')}</div>
+  <p>${t('lab_intro')}</p>
+  ${all?`<section class="hero${L.newBadge&&L.fresh?' pop':''}"><div style="display:flex;gap:14px;align-items:center"><span class="badge good">${ic('shield',32,2.6)}</span><div><div style="font-size:21px;font-weight:800;line-height:1.4">${t('badge_title')}</div></div></div><p>${t('badge_body')}</p></section>`
+  :`<section class="card"><div class="progress"><b style="font-size:18px;font-weight:800">${t('tests_done',{n:nDone})}</b><span class="stars" aria-hidden="true">${ORDER.map((k,i)=>`<span class="${i<nDone?'on':''}">${ic('star',26,2.2)}</span>`).join('')}</span></div><p class="cap">${t('badge_locked')}</p></section>`}
+  <section class="card"><h2>${t('pick_title')}</h2>
+   <div class="pickgrid">${ORDER.map(k=>`<button class="pick" data-a="pickSc" data-v="${k}" aria-pressed="${L.pick===k}" ${running?'disabled':''}><span class="pi">${ic(SCICON[k],22,2.4)}</span><span>${t('sc_'+k)}</span>${L.done[k]?`<span class="dn">${ic('check',16,3.6)}</span>`:''}</button>`).join('')}</div>
+  </section>
+  ${btn}
+  <div id="labrun">${running?runHTML():''}</div>
+  <div id="labres" style="display:flex;flex-direction:column;gap:16px">${running?'':resultHTML()}</div>
+  <p class="cap">${t('lab_note')}</p>
+  <section class="card"><button class="acc" data-a="assume" aria-expanded="${S.assume}">${t('assume_btn')}${ic('down',22,3)}</button>
+   ${S.assume?`<div class="bullets"><div>${t('a1')}</div><div>${t('a2',{a:fmt(SIM.MEAN)})}</div><div>${t('a3',{r:fmt(RENT),e:fmt(EMI),n:fmt(NEED_DAY)})}</div><div>${t('a4',{a:fmt(SIM.SH_LO),b:fmt(SIM.SH_HI)})}</div><div>${t('a5')}</div><div>${t('a6')}</div><div>${t('a7',{s:SEED})}</div></div>`:''}
+  </section>
+ </div>`;
+}
+const paintRun=()=>{const el=$('#labrun');if(el)el.innerHTML=S.lab.phase==='run'?runHTML():''};
+const paintResult=()=>{const el=$('#labres');if(el&&S.lab.phase!=='run')el.innerHTML=resultHTML()};
+function confetti(){
+ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const ph=$('#phone');if(!ph||S.screen!==3)return;
+ const cols=['#3EDC84','#087F37','#0A0A0A','#8A8A83','#3EDC84'];
+ const el=document.createElement('div');el.className='confetti';el.setAttribute('aria-hidden','true');
+ for(let i=0;i<46;i++){const c=document.createElement('i');c.style.left=(Math.random()*100)+'%';c.style.background=cols[i%cols.length];c.style.setProperty('--dx',((Math.random()-.5)*160)+'px');c.style.animationDelay=(Math.random()*.5)+'s';c.style.animationDuration=(1.8+Math.random()*1.2)+'s';el.appendChild(c)}
+ ph.appendChild(el);setTimeout(()=>el.remove(),3600);
+}
+function runTest(){
+ const L=S.lab;if(L.phase==='run')return;
+ if(!L.res[L.pick])L.res[L.pick]=simulate(SEED,SCEN[L.pick]);
+ L.phase='run';L.month=0;L.fresh=false;L.details=false;render();
+ {const el=$('#labrun');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}
+ const key=L.pick;let m=0;
+ const id=setInterval(()=>{m++;L.month=m;paintRun();if(m>=12){clearInterval(id);setTimeout(()=>finishTest(key),380)}},210);
+}
+function finishTest(key){
+ const L=S.lab,before=ORDER.every(k=>L.done[k]);
+ L.done[key]=true;L.phase='idle';L.pick=key;
+ const all=ORDER.every(k=>L.done[k]);L.newBadge=all&&!before;
+ const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(S.screen!==3||reduce){L.fresh=false;L.p=1;render();return}
+ L.fresh=true;L.p=0;render();
+ {const el=$('#labres');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+ const t0=performance.now(),dur=1000;
+ const step=now=>{const x=Math.max(0,Math.min(1,(now-t0)/dur));L.p=1-Math.pow(1-x,3);paintResult();
+  if(x<1)requestAnimationFrame(step);else{L.fresh=false;L.p=1}};
+ requestAnimationFrame(step);
+ const r=L.res[key];if(safe100(r.es)-safe100(r.base)>=10||L.newBadge)setTimeout(confetti,450);
+}
+
+/* ---------- sheets ---------- */
+const catsExp=['cat_cng','cat_vrent','cat_other','cat_home'];
+function sheetHTML(){
+ const sh=S.sheet;if(!sh)return '';
+ const c=calc();
+ const close=`<button class="icon-btn" data-a="close" aria-label="${t('close')}">${ic('x',24,3)}</button>`;
+ let body='';
+ if(sh.type==='add'){
+  const isIn=sh.kind==='fare';
+  const q=isIn?[200,500,1000,2000]:[50,100,200,500];
+  body=`<div class="sheet-head"><h2 id="st">${isIn?t('add_earn'):t('add_exp')}</h2>${close}</div>
+   <label class="lab" for="amt">${t('amount')}</label>
+   <div class="amount"><span>₹</span><input id="amt" inputmode="numeric" autocomplete="off" value="${sh.amount}" aria-describedby="dyn"></div>
+   <div class="chips">${q.map(v=>`<button class="chip" data-a="quick" data-v="${v}" aria-pressed="false">${fmt(v)}</button>`).join('')}</div>
+   ${isIn?'':`<div class="lab">${t('for_what')}</div><div class="chips">${catsExp.map(k=>`<button class="chip" data-a="cat" data-v="${k}" aria-pressed="${sh.cat===k}">${t(k)}</button>`).join('')}</div>`}
+   <button class="btn light" data-a="voice">${ic('mic',22)}${t('speak')}</button>
+   <div id="dyn">${dynAdd()}</div>`;
+ }else if(sh.type==='out'){
+  const rs=['r_puncture','r_breakdown','r_medical','r_other'];
+  body=`<div class="sheet-head"><h2 id="st">${t('out_title')}</h2>${close}</div>
+   <label class="lab" for="amt">${t('out_amt')}</label>
+   <div class="amount"><span>₹</span><input id="amt" inputmode="numeric" autocomplete="off" value="${sh.amount}" aria-describedby="dyn"></div>
+   <div class="chips">${[500,1000,2000].map(v=>`<button class="chip" data-a="quick" data-v="${v}" aria-pressed="false">${fmt(v)}</button>`).join('')}</div>
+   <div class="lab">${t('out_why')}</div>
+   <div class="chips">${rs.map(k=>`<button class="chip" data-a="reason" data-v="${k}" aria-pressed="${sh.reason===k}">${t(k)}</button>`).join('')}</div>
+   <div id="dyn">${dynOut()}</div>`;
+ }else{
+  body=`<div class="sheet-head"><h2 id="st">${t('export_title')}</h2>${close}</div>
+   <div class="pill na">${t('x_period')}</div>
+   <div><div class="row"><span>${t('x_gross')}</span><b class="num pos" style="font-size:20px;font-weight:800">${plus(exportData().gross)}</b></div>
+   <div class="row"><span>${t('x_work')}</span><b class="num neg" style="font-size:20px;font-weight:800">${minus(exportData().work)}</b></div>
+   <div class="row"><span>${t('x_net')}</span><b class="num" style="font-size:22px;font-weight:800">${fmt(exportData().net)}</b></div>
+   <div class="row"><span>${t('x_days')}</span><b class="num" style="font-size:20px;font-weight:800">${exportData().days}</b></div></div>
+   <div class="note">${ic('info',22)}<span>${t('x_note')}</span></div>
+   <button class="btn" data-a="copy">${ic('copy',22)}${t('copy')}</button>`;
+ }
+ return `<div class="scrim" data-a="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="st">${body}</div></div>`;
+}
+const num=v=>parseInt(v||'0',10)||0;
+function dynAdd(){const sh=S.sheet;const a=num(sh.amount);
+ const msg=sh.voice==='listening'?`<p class="cap">${t('listening')}</p>`:sh.voice==='na'?`<p class="cap">${t('voice_na')}</p>`:'';
+ return `${msg}<button class="btn" data-a="saveAdd" ${a>0?'':'disabled'}>${t('save')}${a>0?' · '+fmt(a):''}</button>`}
+function dynOut(){const sh=S.sheet,c=calc(),a=num(sh.amount);
+ if(a<=0)return `<button class="btn" disabled>${t('take_out')}</button>`;
+ if(a>c.vault)return `<div class="say neg">${ic('alert',22,3)}<span>${t('out_bad')}</span></div><button class="btn" disabled>${t('out_confirm',{x:fmt(a)})}</button>`;
+ const nv=c.vault-a,nr=Math.floor(nv/NEED_DAY),ns=shortfallFor(nv);
+ return `<div class="lab">${t('change')}</div>
+  <div class="cmp"><div><span class="cap">${t('before')}</span><b class="num">${t('days_unit',{n:c.runway})}</b></div><div><span class="cap">${t('after')}</span><b class="num ${nr<c.runway?'neg':''}">${t('days_unit',{n:nr})}</b></div></div>
+  <div class="say ${ns>0?'neg':'pos'}">${ic(ns>0?'alert':'check',22,3)}<span>${ns>0?t('short14',{x:fmt(ns)}):t('ok14')}</span></div>
+  <button class="btn" data-a="confirmOut">${t('out_confirm',{x:fmt(a)})}</button>`}
+function exportData(){const c=calc();return {gross:HIST.gross+c.gross,work:HIST.work+c.work,net:HIST.gross+c.gross-HIST.work-c.work,days:c.days}}
+
+/* ---------- shell render ---------- */
+function render(){
+ const prevScroll=$('.view')?$('.view').scrollTop:0,prevScreen=S._shown;
+ document.documentElement.lang=S.lang;
+ $('#rail').innerHTML=`<div class="brand-rail"><span class="logo" style="font-size:22px"><span class="mark" style="width:40px;height:40px;border-radius:12px">${ic('shield',22,2.4)}</span>EarnShield</span></div><h2>${t('rail_title')}</h2>`+
+  [0,1,2,3].map(i=>`<button data-a="go" data-v="${i}" aria-current="${S.screen===i}"><span class="n">${i+1}</span>${t('s'+i)}</button>`).join('');
+ const views=[viewLang,viewHome,viewMoney,viewLab];
+ const tabs=S.screen>0?`<nav class="tabs" aria-label="Main">${[['tab_home','home',1],['tab_money','wallet',2],['tab_lab','flask',3]].map(x=>`<button data-a="go" data-v="${x[2]}" aria-current="${S.screen===x[2]}">${ic(x[1],24,2.6)}${t(x[0])}</button>`).join('')}</nav>`:'';
+ $('#phone').innerHTML=views[S.screen]()+tabs+sheetHTML()+(S.toast?`<div class="toast" role="status">${S.toast}</div>`:'');
+ if($('.view')&&prevScreen===S.screen)$('.view').scrollTop=prevScroll;
+ S._shown=S.screen;
+}
+function refreshDyn(){const d=$('#dyn');if(!d||!S.sheet)return;d.innerHTML=S.sheet.type==='add'?dynAdd():dynOut()}
+let toastTimer;
+function toast(msg){S.toast=msg;render();clearTimeout(toastTimer);toastTimer=setTimeout(()=>{S.toast='';const el=$('.toast');if(el)el.remove()},2200)}
+
+/* ---------- actions ---------- */
+function summaryText(){const x=exportData();
+ return `EarnShield — ${t('export_title')}\n${t('x_period')}\n${t('x_gross')}: ${fmt(x.gross)}\n${t('x_work')}: ${fmt(x.work)}\n${t('x_net')}: ${fmt(x.net)}\n${t('x_days')}: ${x.days}\n${t('x_note')}`}
+function voice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){S.sheet.voice='na';refreshDyn();return}
+ try{const r=new SR();r.lang=LANGS[S.lang].loc;
+  r.onresult=ev=>{const m=ev.results[0][0].transcript.replace(/,/g,'').match(/\d+/);if(m){S.sheet.amount=m[0].slice(0,6);const i=$('#amt');if(i)i.value=S.sheet.amount}S.sheet.voice='';refreshDyn()};
+  r.onerror=()=>{S.sheet.voice='na';refreshDyn()};
+  r.onend=()=>{if(S.sheet&&S.sheet.voice==='listening'){S.sheet.voice='';refreshDyn()}};
+  S.sheet.voice='listening';refreshDyn();r.start();
+ }catch(e){S.sheet.voice='na';refreshDyn()}
+}
+function act(a,v,el,ev){
+ switch(a){
+  case 'lang':S.lang=v;render();break;
+  case 'go':S.screen=+v;S.sheet=null;render();break;
+  case 'openAdd':S.sheet={type:'add',kind:v,amount:'',cat:'cat_cng',voice:''};render();setTimeout(()=>{const i=$('#amt');if(i)i.focus()},50);break;
+  case 'openOut':S.sheet={type:'out',amount:'',reason:'r_puncture'};render();setTimeout(()=>{const i=$('#amt');if(i)i.focus()},50);break;
+  case 'openExport':S.sheet={type:'export'};render();break;
+  case 'close':S.sheet=null;render();break;
+  case 'scrim':if(ev.target===el){S.sheet=null;render()}break;
+  case 'quick':S.sheet.amount=String(v);{const i=$('#amt');if(i)i.value=v}refreshDyn();break;
+  case 'cat':S.sheet.cat=v;document.querySelectorAll('[data-a="cat"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));break;
+  case 'reason':S.sheet.reason=v;document.querySelectorAll('[data-a="reason"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));break;
+  case 'voice':voice();break;
+  case 'saveAdd':{const sh=S.sheet,amt=num(sh.amount);if(amt<=0)break;
+   const isIn=sh.kind==='fare';
+   S.entries.push({id:S.nextId++,kind:isIn?'fare':(sh.cat==='cat_home'?'house':'work'),cat:isIn?'cat_fare':sh.cat,amt});
+   S.sheet=null;toast(t('saved'));break}
+  case 'confirmOut':{const sh=S.sheet,amt=num(sh.amount),c=calc();if(amt<=0||amt>c.vault)break;
+   S.entries.push({id:S.nextId++,kind:'emergency',cat:sh.reason,amt});S.sheet=null;toast(t('out_done'));break}
+  case 'remove':S.entries=S.entries.filter(e=>e.id!==+v);toast(t('removed'));break;
+  case 'why':S.why=!S.why;render();break;
+  case 'assume':S.assume=!S.assume;render();break;
+  case 'refill':S.refill=!S.refill;render();break;
+  case 'pickSc':if(S.lab.phase!=='run'){S.lab.pick=v;S.lab.fresh=false;S.lab.p=1;render()}break;
+  case 'runTest':runTest();break;
+  case 'nextTest':{const nx=ORDER.find(k=>!S.lab.done[k]);if(nx&&S.lab.phase!=='run'){S.lab.pick=nx;runTest()}break}
+  case 'labDetails':S.lab.details=!S.lab.details;render();break;
+  case 'copy':{
+   const txt=summaryText();
+   const legacy=()=>{try{const ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();toast(t(ok?'copied':'copy_fail'))}catch(e){toast(t('copy_fail'))}};
+   try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(()=>toast(t('copied')),legacy);else legacy()}catch(e){legacy()}
+   break}
+ }
+}
+document.addEventListener('click',ev=>{const el=ev.target.closest('[data-a]');if(el)act(el.dataset.a,el.dataset.v,el,ev)});
+document.addEventListener('input',ev=>{
+ if(ev.target.id==='amt'&&S.sheet){const v=ev.target.value.replace(/\D/g,'').slice(0,6);ev.target.value=v;S.sheet.amount=v;refreshDyn()}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&S.sheet){S.sheet=null;render()}});
+render();
+</script>
+</body>
+</html>
