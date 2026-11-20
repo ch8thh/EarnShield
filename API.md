@@ -24,8 +24,8 @@ Bill `status`: `covered | on-track | at-risk | paid`.
 - `GET /bills` → bill list (fields as in dashboard, plus `repeat`, `mustPay`, `paid`)
 - `POST /bills` `{name, amount, dueDate, repeat, mustPay}` → `201` bill
 - `PATCH /bills/:id` any of the above fields → bill
-- `POST /bills/:id/pay` → bill (`paid: true`)
-- `GET /bills/coverage` → output of the engine's `billCoverage(bills, protectedPool)` (currently a stub with `protectedPool = 0`):
+- `POST /bills/:id/pay` → bill (`paid: true`). Any shortfall (amount − set aside) is taken from the reserve and logged as a `withdraw` event. Repeating bills (`weekly`/`monthly`) roll to the next due date and start unpaid; paying an already-paid bill does nothing.
+- `GET /bills/coverage` → output of the engine's `billCoverage(bills, protectedPool)` (`protectedPool` = rupees currently set aside for unpaid bills):
   ```json
   [{ "bill": { "id": 1, "name": "Mobile recharge", "amount": 299, "due_date": "2026-11-24",
                "repeat": "monthly", "must_pay": 1, "paid": 0, "covered_amt": 299 },
@@ -35,8 +35,8 @@ Bill `status`: `covered | on-track | at-risk | paid`.
 
 ## Reserve & buffer
 - `GET /reserve` → `{balance, target, buffer, history:[{id,date,type,amount,reason}]}`
-- `POST /buffer/withdraw` `{amount, reason}` → `{runwayBefore, runwayAfter, coverageBefore:[], coverageAfter:[], rebuildPlan}` (simulation only for now)
-- `POST /buffer/rebuild/accept` → `{ok:true}`
+- `POST /buffer/withdraw` `{amount, reason}` → `{runwayBefore, runwayAfter, coverageBefore:[], coverageAfter:[], rebuildPlan}` (simulation only: nothing changes until `/buffer/rebuild/accept`; 400 if `amount` is not positive or is more than the balance)
+- `POST /buffer/rebuild/accept` → `{ok:true}` — applies the last simulated withdrawal (reserve balance, `withdraw` + `rebuild` events); 400 if there is none
 
 ## Reports
 - `GET /reports/summary?from&to` → `{gross, workCosts, net, daysWorked, avgPerDay, best:{date,net}, lowest:{date,net}, weekly:[{weekStart,net,days}]}`
