@@ -1,10 +1,12 @@
-// Engine core. computeDay is implemented; billCoverage and runwayDays are still stubs.
+// Engine core: computeDay, billCoverage and runwayDays.
 
 const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 const round2 = (n) => Math.round(n * 100) / 100;
 
 // Split percentages [bills, reserve, spend] by kind of day (ratio = net / recent average).
 const SPLITS = { low: [50, 20, 30], normal: [40, 20, 40], high: [35, 30, 35] };
+// Reserve-mode tweak: percentage points moved between reserve and spend ('auto' = no change).
+const RESERVE_SHIFT = { auto: 0, low: -10, high: 10 };
 const LOW_RATIO = 0.8;
 const HIGH_RATIO = 1.3;
 
@@ -15,7 +17,7 @@ const dayDiff = (from, to) => Math.round((Date.parse(to + 'T00:00:00Z') - Date.p
  * @param {{gross:number,fuel:number,otherCosts:number,recentNets:number[],bills:object[],today:string}} input
  * @returns {{net:number,split:{bills:number,reserve:number,spend:number},reservePct:number,explanation:string[]}}
  */
-function computeDay({ gross = 0, fuel = 0, otherCosts = 0, recentNets = [], bills = [], today } = {}) {
+function computeDay({ gross = 0, fuel = 0, otherCosts = 0, recentNets = [], bills = [], today, reserveMode = 'auto' } = {}) {
   const net = round2(gross - fuel - otherCosts);
   const costLine = `You earned ${inr(gross)} and spent ${inr(fuel + otherCosts)} on fuel and other costs, so your net is ${inr(net)}.`;
   if (net <= 0) {
@@ -34,7 +36,10 @@ function computeDay({ gross = 0, fuel = 0, otherCosts = 0, recentNets = [], bill
   const avg = nets.length ? nets.reduce((a, b) => a + b, 0) / nets.length : 0;
   const ratio = avg > 0 ? net / avg : 1;
   const kind = avg > 0 && ratio < LOW_RATIO ? 'low' : avg > 0 && ratio > HIGH_RATIO ? 'high' : 'normal';
-  const [bp, rp, sp] = SPLITS[kind];
+  const [bp, baseRp, baseSp] = SPLITS[kind];
+  const shift = RESERVE_SHIFT[reserveMode] || 0;
+  const rp = baseRp + shift;
+  const sp = baseSp - shift;
 
   const billsAmt = Math.round((net * bp) / 100);
   const reserveAmt = Math.round((net * rp) / 100);
@@ -57,6 +62,7 @@ function computeDay({ gross = 0, fuel = 0, otherCosts = 0, recentNets = [], bill
     const when = d < 0 ? 'overdue' : d === 0 ? 'due today' : d === 1 ? 'due tomorrow' : `due in ${d} days`;
     billLine += ` Your next bill is ${next.name} (${inr(next.amount)}, ${when}).`;
   }
+  if (shift) billLine += shift > 0 ? ' Your reserve mode is set to save more.' : ' Your reserve mode is set to save less.';
   return { net, split: { bills: billsAmt, reserve: reserveAmt, spend }, reservePct, explanation: [costLine, why, billLine] };
 }
 

@@ -12,6 +12,7 @@ router.get('/explain/:date', (req, res) => {
   const recentNets = db.prepare('SELECT net FROM entries WHERE date<? ORDER BY date DESC LIMIT 14').all(e.date).map((r) => r.net);
   const { explanation } = computeDay({
     gross: e.gross, fuel: e.fuel, otherCosts: e.other_costs, recentNets, bills: allBills(), today: e.date,
+    reserveMode: db.prepare('SELECT reserve_mode m FROM settings WHERE id=1').get().m,
   });
   res.json({
     steps: [

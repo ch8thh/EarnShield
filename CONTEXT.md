@@ -28,7 +28,7 @@ Node + Express + SQLite (`better-sqlite3`), in `/backend`, port 4000, CORS on, a
 | Y | `routes/bills.js`, `reserve.js`, `buffer.js`, `reports.js` |
 | Shared | `src/engine/core.js` (computeDay, billCoverage, runwayDays), `src/db.js`, `src/util.js` |
 
-## Engine contract (`src/engine/core.js`) — currently STUBS
+## Engine contract (`src/engine/core.js`)
 - `computeDay({gross, fuel, otherCosts, recentNets, bills, today}) -> {net, split:{bills,reserve,spend}, reservePct, explanation[]}`
 - `billCoverage(bills, protectedPool) -> [{bill, coveredPct, status}]`
 - `runwayDays(reserve, essentialDailyCost) -> number`
@@ -45,4 +45,4 @@ Keep signatures stable; replace bodies.
 - `variability.level` uses the coefficient of variation (stdev ÷ mean) of the last 14 nets: <0.15 low, <0.30 medium, else high. `todayAdded` = today's reserve amount.
 
 ## Current state
-Skeleton only. Routes return contract-shaped data from the DB, but dashboard `safeToSpend`, `POST /entries` splits, `/buffer/withdraw` and bill status are stubbed (marked `TODO`).
+Backend complete: all routes and the engine are implemented and tested (`npm test`). Settings are validated (`language`: en/hi/kn/ta/te, `reserveMode`: auto/low/high, `weatherAlerts`: boolean). `reserveMode` shifts 10 points between reserve and spend (`high` saves more, `low` saves less).

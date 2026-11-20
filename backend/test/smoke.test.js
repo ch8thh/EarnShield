@@ -111,3 +111,25 @@ test('seed reset restores state', async () => {
   assert.equal(d.body.bills.length, 4);
   assert.equal((await call('GET', '/entries')).body.length, 15);
 });
+
+test('settings validation rejects bad values', async () => {
+  assert.equal((await call('PUT', '/settings', { language: 'xx' })).status, 400);
+  assert.equal((await call('PUT', '/settings', { reserveMode: 'wild' })).status, 400);
+  assert.equal((await call('PUT', '/settings', { weatherAlerts: 'yes' })).status, 400);
+  assert.equal((await call('PUT', '/settings', { language: 'hi' })).status, 200);
+  await call('POST', '/seed/reset');
+});
+
+test('reserveMode shifts reserve vs spend', async () => {
+  const day = { gross: 1500, fuel: 200, otherCosts: 0, recentNets: [1300, 1300], bills: [], today: '2026-11-20' };
+  const auto = computeDay(day).split;
+  const high = computeDay({ ...day, reserveMode: 'high' }).split;
+  const low = computeDay({ ...day, reserveMode: 'low' }).split;
+  assert.ok(high.reserve > auto.reserve && high.spend < auto.spend);
+  assert.ok(low.reserve < auto.reserve && low.spend > auto.spend);
+  assert.equal(high.bills, auto.bills);
+  await call('PUT', '/settings', { reserveMode: 'high' });
+  const r = await call('POST', '/entries', { date: '2026-11-21', gross: 1500, fuel: 200 });
+  assert.equal(r.status, 201 === r.status ? 201 : 200);
+  await call('POST', '/seed/reset');
+});

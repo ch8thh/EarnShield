@@ -3,6 +3,8 @@ const { db } = require('../db');
 const { computeDay } = require('../engine/core');
 const { allBills, reserveState, entryOut, bad, isDate } = require('../util');
 
+const currentMode = () => db.prepare('SELECT reserve_mode m FROM settings WHERE id=1').get().m;
+
 const router = express.Router();
 
 router.post('/entries', (req, res) => {
@@ -12,7 +14,7 @@ router.post('/entries', (req, res) => {
     throw bad('gross, fuel, otherCosts must be non-negative numbers');
   }
   const recentNets = db.prepare('SELECT net FROM entries WHERE date<? ORDER BY date DESC LIMIT 14').all(date).map((r) => r.net);
-  const r = computeDay({ gross, fuel, otherCosts, recentNets, bills: allBills(), today: date });
+  const r = computeDay({ gross, fuel, otherCosts, recentNets, bills: allBills(), today: date, reserveMode: currentMode() });
 
   const apply = db.transaction(() => {
     // Priority order: must-pay first, then earliest due date.
