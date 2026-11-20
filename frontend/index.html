@@ -375,7 +375,8 @@ const S={lang:'en',screen:0,why:false,assume:false,refill:false,sheet:null,toast
  lab:{pick:'normal',phase:'idle',month:0,res:{},done:{},p:1,fresh:false,details:false,newBadge:false}};
  const api=async(p,o={})=>{const r=await fetch('/api'+p,{method:o.method||'GET',headers:{'content-type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j};
 S.api=null;
-async function refresh(){try{const[d,s]=await Promise.all([api('/dashboard'),api('/settings')]);S.api={d,s};S.lang=s.language}catch(e){S.api=null}render()}
+async function refresh(){try{const[d,s,r]=await Promise.all([api('/dashboard'),api('/settings'),api('/reports/summary')]);S.api={d,s,r};S.lang=s.language;S.bills=d.bills.map(b=>({id:b.id,kind:b.name,amt:b.amount,day:+b.dueDate.slice(8,10)}))}catch(e){S.api=null}render()}
+const nextDate=day=>{const n=new Date(),y=n.getFullYear(),m=n.getMonth(),dim=(a,b)=>new Date(a,b+1,0).getDate();let d=new Date(y,m,Math.min(day,dim(y,m)));if(d<new Date(y,m,n.getDate()))d=new Date(y,m+1,Math.min(day,dim(y,m+1)));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 async function boot(){
  await refresh();if(!S.api)return;
  const d=S.api.d,e=(await api(`/entries?from=${d.todayDate}&to=${d.todayDate}`))[0];
@@ -755,7 +756,7 @@ function dynOut(){const sh=S.sheet,c=calc(),a=num(sh.amount);
   <div class="cmp"><div><span class="cap">${t('before')}</span><b class="num">${t('days_unit',{n:c.runway})}</b></div><div><span class="cap">${t('after')}</span><b class="num ${nr<c.runway?'neg':''}">${t('days_unit',{n:nr})}</b></div></div>
   <div class="say ${ns>0?'neg':'pos'}">${ic(ns>0?'alert':'check',22,3)}<span>${ns>0?t('short14',{x:fmt(ns)}):t('ok14')}</span></div>
   <button class="btn" data-a="confirmOut">${t('out_confirm',{x:fmt(a)})}</button>`}
-function exportData(){const c=calc();return {gross:HIST.gross+c.gross,work:HIST.work+c.work,net:HIST.gross+c.gross-HIST.work-c.work,days:c.days}}
+function exportData(){const c=calc();if(S.api&&S.api.r){const r=S.api.r;return {gross:r.gross,work:r.workCosts,net:r.net,days:r.daysWorked}}return {gross:HIST.gross+c.gross,work:HIST.work+c.work,net:HIST.gross+c.gross-HIST.work-c.work,days:c.days}}
 
 /* ---------- shell render ---------- */
 function render(){
@@ -796,10 +797,11 @@ function act(a,v,el,ev){
   case 'editBill':{const b=S.bills.find(x=>x.id===+v);if(!b)break;S.sheet={type:'bill',id:b.id,kind:b.kind,amount:String(b.amt),day:String(b.day)};render();break}
   case 'billKind':S.sheet.kind=v;document.querySelectorAll('[data-a="billKind"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));break;
   case 'billDay':S.sheet.day=String(v);{const i=$('#day');if(i)i.value=v}document.querySelectorAll('[data-a="billDay"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===String(v)));refreshDyn();break;
-  case 'saveBill':{const sh=S.sheet,amt=num(sh.amount),day=num(sh.day);if(amt<=0||day<1||day>31)break;
-   if(sh.id){const b=S.bills.find(x=>x.id===sh.id);if(b){b.kind=sh.kind;b.amt=amt;b.day=day}}else S.bills.push({id:S.nextId++,kind:sh.kind,amt,day});
-   S.lab.res={};S.sheet=null;toast(t('bill_saved'));break}
-  case 'removeBill':S.bills=S.bills.filter(b=>b.id!==S.sheet.id);S.lab.res={};S.sheet=null;toast(t('bill_removed'));break;
+    case 'saveBill':{const sh=S.sheet,amt=num(sh.amount),day=num(sh.day);if(amt<=0||day<1||day>31)break;
+   const body={name:sh.kind,amount:amt,dueDate:nextDate(day),repeat:'monthly',mustPay:true};
+   S.lab.res={};S.sheet=null;toast(t('bill_saved'));
+   (sh.id?api('/bills/'+sh.id,{method:'PATCH',body}):api('/bills',{method:'POST',body})).then(refresh).catch(e=>toast(e.message));break}
+    case 'removeBill':{const id=S.sheet.id;S.lab.res={};S.sheet=null;toast(t('bill_removed'));api('/bills/'+id,{method:'DELETE'}).then(refresh).catch(e=>toast(e.message));break}
   case 'openExport':S.sheet={type:'export'};render();break;
   case 'close':S.sheet=null;render();break;
   case 'scrim':if(ev.target===el){S.sheet=null;render()}break;
