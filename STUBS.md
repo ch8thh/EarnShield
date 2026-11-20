@@ -4,8 +4,6 @@ To-do list. Delete a row when it's done. Paths are relative to `backend/`.
 
 | # | File | Function / route | Currently returns | Should do instead |
 |---|---|---|---|---|
-| 2 | `src/engine/core.js` | `billCoverage` | Hardcoded % by bill name (100/80/55/30), status from that | Allocate `protectedPool` across bills by due date and `mustPay` priority; derive `coveredPct` and `status` |
-| 3 | `src/engine/core.js` | `runwayDays` | Always `14` | `floor(reserve / essentialDailyCost)`, guarding `essentialDailyCost <= 0` |
 | 5 | `src/util.js` | `statusFor` / `billOut` | `coveredPct` from `covered_amt / amount`; status by fixed 50%/100% thresholds | Use `billCoverage` output so dashboard and `/bills` agree with the engine |
 | 10 | `src/routes/bills.js` | `POST /bills/:id/pay` | Sets `paid=1`, `covered_amt=amount` | Deduct from protected pool/reserve, log an event, roll `due_date` forward for repeating bills |
 | 11 | `src/routes/bills.js` | `GET /bills/coverage` | Calls `billCoverage(bills, 0)`; returns raw DB rows (snake_case) in `bill` | Pass the real protected pool; return camelCase bill objects (or drop the route once #5 is done) |
