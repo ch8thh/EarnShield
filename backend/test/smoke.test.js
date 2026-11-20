@@ -2,6 +2,7 @@ process.env.DB_PATH = ':memory:';
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
 const app = require('../src/server');
+const { computeDay } = require('../src/engine/core');
 
 let server, base;
 before(() => new Promise((r) => { server = app.listen(0, () => { base = `http://localhost:${server.address().port}/api`; r(); }); }));
@@ -16,7 +17,7 @@ const call = async (method, path, body) => {
 test('dashboard matches seed', async () => {
   const { status, body } = await call('GET', '/dashboard');
   assert.equal(status, 200);
-  assert.equal(body.safeToSpend, 1240);
+  assert.equal(body.safeToSpend, 520); // today's spend_amt
   assert.equal(body.runwayDays, 14);
   assert.deepEqual(body.reserve, { balance: 8400, target: 15000, buffer: 3000 });
   assert.equal(body.bills.length, 4);
@@ -32,6 +33,62 @@ test('entries', async () => {
   assert.equal(post.status, 201);
   assert.ok(post.body.split && Array.isArray(post.body.explanation));
   assert.equal((await call('POST', '/entries', { date: 'x' })).status, 400);
+});
+
+test('POST /entries applies the split and is idempotent per date', async () => {
+  await call('POST', '/seed/reset');
+  const before = (await call('GET', '/reserve')).body;
+  const body = { date: '2026-11-22', gross: 1500, fuel: 300, otherCosts: 100 };
+  const a = await call('POST', '/entries', body);
+  assert.equal(a.status, 201);
+  assert.equal(a.body.net, 1100);
+  assert.equal(a.body.split.bills + a.body.split.reserve + a.body.split.spend, 1100);
+  const mid = (await call('GET', '/reserve')).body;
+  assert.equal(mid.balance, before.balance + a.body.split.reserve);
+  assert.equal(a.body.reservePct, Math.round((mid.balance / mid.target) * 100));
+  assert.equal(mid.history.length, before.history.length + 1);
+  const billsMid = (await call('GET', '/bills')).body.map((b) => b.coveredPct);
+
+  const b = await call('POST', '/entries', body);
+  assert.deepEqual(b.body.split, a.body.split);
+  const after = (await call('GET', '/reserve')).body;
+  assert.equal(after.balance, mid.balance);
+  assert.equal(after.history.length, mid.history.length);
+  assert.deepEqual((await call('GET', '/bills')).body.map((x) => x.coveredPct), billsMid);
+
+  // a different amount on the same date replaces the old effect
+  const c = await call('POST', '/entries', { ...body, gross: 1000 });
+  assert.equal((await call('GET', '/reserve')).body.balance, before.balance + c.body.split.reserve);
+
+  const ex = await call('GET', '/explain/2026-11-22');
+  assert.ok(ex.body.explanation.length >= 2 && ex.body.steps.length === 7);
+  await call('POST', '/seed/reset');
+  assert.equal((await call('GET', '/reserve')).body.balance, 8400);
+});
+
+test('computeDay', () => {
+  const recentNets = [1000, 1200, 1100, 1300]; // avg 1150
+  const run = (gross, nets = recentNets) => computeDay({ gross, fuel: 0, otherCosts: 0, recentNets: nets, bills: [], today: '2026-11-20' });
+  const seed = computeDay({ gross: 1850, fuel: 420, otherCosts: 130, recentNets, bills: [], today: '2026-11-20' });
+  assert.equal(seed.net, 1300);
+  assert.deepEqual(seed.split, { bills: 520, reserve: 260, spend: 520 });
+  assert.equal(seed.reservePct, 20);
+  const low = run(800);
+  assert.deepEqual(low.split, { bills: 400, reserve: 160, spend: 240 });
+  const high = run(2000);
+  assert.deepEqual(high.split, { bills: 700, reserve: 600, spend: 700 });
+  assert.deepEqual(run(1000, []).split, { bills: 400, reserve: 200, spend: 400 });
+  for (const r of [low, high, seed, run(1001), run(777)]) {
+    assert.equal(r.split.bills + r.split.reserve + r.split.spend, r.net);
+    assert.ok(r.explanation.length >= 2 && r.explanation.length <= 4);
+  }
+  assert.match(seed.explanation[0], /₹1,300/);
+  for (const g of [0, -1]) {
+    const z = computeDay({ gross: g, fuel: 100, otherCosts: 0, recentNets, bills: [], today: '2026-11-20' });
+    assert.deepEqual(z.split, { bills: 0, reserve: 0, spend: 0 });
+    assert.equal(z.reservePct, 0);
+    assert.match(z.explanation.join(' '), /No money is set aside/);
+  }
 });
 
 test('other routes respond', async () => {

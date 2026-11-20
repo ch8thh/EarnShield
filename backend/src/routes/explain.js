@@ -1,6 +1,7 @@
 const express = require('express');
 const { db } = require('../db');
-const { bad, isDate } = require('../util');
+const { computeDay } = require('../engine/core');
+const { allBills, bad, isDate } = require('../util');
 
 const router = express.Router();
 
@@ -8,7 +9,10 @@ router.get('/explain/:date', (req, res) => {
   if (!isDate(req.params.date)) throw bad('date must be YYYY-MM-DD');
   const e = db.prepare('SELECT * FROM entries WHERE date=?').get(req.params.date);
   if (!e) return res.status(404).json({ error: 'No entry for that date' });
-  // TODO: replace with engine-generated explanation.
+  const recentNets = db.prepare('SELECT net FROM entries WHERE date<? ORDER BY date DESC LIMIT 14').all(e.date).map((r) => r.net);
+  const { explanation } = computeDay({
+    gross: e.gross, fuel: e.fuel, otherCosts: e.other_costs, recentNets, bills: allBills(), today: e.date,
+  });
   res.json({
     steps: [
       { label: 'Gross earnings', amount: e.gross },
@@ -19,10 +23,7 @@ router.get('/explain/:date', (req, res) => {
       { label: 'To reserve', amount: e.reserve_amt },
       { label: 'Safe to spend', amount: e.spend_amt },
     ],
-    explanation: [
-      `You earned ₹${e.gross} and spent ₹${e.fuel + e.other_costs} on work costs, leaving ₹${e.net}.`,
-      `₹${e.bills_amt} was set aside for bills, ₹${e.reserve_amt} for your reserve, and ₹${e.spend_amt} is yours to spend.`,
-    ],
+    explanation,
   });
 });
 
