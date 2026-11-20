@@ -19,29 +19,57 @@ function computeDay({ gross, fuel, otherCosts, recentNets, bills, today } = {}) 
   };
 }
 
+const statusOf = (pct) => (pct >= 100 ? 'covered' : pct >= 50 ? 'on-track' : 'at-risk');
+const num = (v) => (Number.isFinite(v) ? v : 0);
+
 /**
- * @param {object[]} bills
- * @param {number} protectedPool rupees available to cover bills
- * @returns {{bill:object,coveredPct:number,status:string}[]}
+ * Allocate the protected pool across bills. Each unpaid bill's target is its
+ * covered_amt (capped at amount); if the targets exceed the pool, coverage is
+ * shrunk from the lowest-priority bill first (priority: must_pay, then earliest due_date).
+ * @param {object[]} bills DB rows {id,name,amount,due_date,repeat,must_pay,paid,covered_amt}
+ * @param {number} protectedPool rupees available to cover bills (missing/negative = 0)
+ * @returns {{bill:object,coveredPct:number,status:string}[]} same order as input
  */
 function billCoverage(bills, protectedPool) {
-  // TODO: allocate protectedPool across bills by due date / mustPay priority.
-  const sample = { 'Mobile recharge': 100, 'Room rent': 80, 'Auto loan EMI': 55, 'School fees': 30 };
-  return (bills || []).map((bill) => {
-    const coveredPct = sample[bill.name] ?? 0;
-    const status = coveredPct >= 100 ? 'covered' : coveredPct >= 50 ? 'on-track' : 'at-risk';
-    return { bill, coveredPct, status };
+  const list = Array.isArray(bills) ? bills : [];
+  const pool = Math.max(0, num(protectedPool));
+  const cover = list.map((b) => (b.paid ? null : Math.max(0, Math.min(num(b.covered_amt), num(b.amount)))));
+
+  let excess = cover.reduce((a, c) => a + (c || 0), 0) - pool;
+  if (excess > 0) {
+    const order = list
+      .map((b, i) => i)
+      .filter((i) => cover[i] !== null)
+      .sort((i, j) => {
+        const a = list[i], b = list[j];
+        return (!!b.must_pay - !!a.must_pay) ||
+          String(a.due_date ?? '').localeCompare(String(b.due_date ?? '')) || i - j;
+      });
+    for (let k = order.length - 1; k >= 0 && excess > 0; k--) {
+      const cut = Math.min(cover[order[k]], excess);
+      cover[order[k]] -= cut;
+      excess -= cut;
+    }
+  }
+
+  return list.map((bill, i) => {
+    if (bill.paid) return { bill, coveredPct: 100, status: 'paid' };
+    const amount = num(bill.amount);
+    // A zero-amount bill owes nothing, so it counts as fully covered.
+    const coveredPct = amount > 0 ? Math.round((cover[i] / amount) * 100) : 100;
+    return { bill, coveredPct, status: statusOf(coveredPct) };
   });
 }
 
 /**
  * @param {number} reserve current reserve balance (rupees)
  * @param {number} essentialDailyCost rupees/day needed for essentials
- * @returns {number} days
+ * @returns {number} whole days of runway (0 for invalid or non-positive inputs)
  */
 function runwayDays(reserve, essentialDailyCost) {
-  // TODO: Math.floor(reserve / essentialDailyCost) with guards (cost <= 0).
-  return 14;
+  if (!Number.isFinite(reserve) || !Number.isFinite(essentialDailyCost)) return 0;
+  if (reserve <= 0 || essentialDailyCost <= 0) return 0;
+  return Math.floor(reserve / essentialDailyCost);
 }
 
 module.exports = { computeDay, billCoverage, runwayDays };

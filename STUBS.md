@@ -5,8 +5,6 @@ To-do list. Delete a row when it's done. Paths are relative to `backend/`.
 | # | File | Function / route | Currently returns | Should do instead |
 |---|---|---|---|---|
 | 1 | `src/engine/core.js` | `computeDay` | Fixed `net 1300`, split `520/260/520`, `reservePct 56`, canned explanation — ignores all inputs | `net = gross − fuel − otherCosts`; split net into bills/reserve/spend using `recentNets` variability and upcoming `bills`; compute `reservePct` from reserve vs target; build explanation from the actual numbers |
-| 2 | `src/engine/core.js` | `billCoverage` | Hardcoded % by bill name (100/80/55/30), status from that | Allocate `protectedPool` across bills by due date and `mustPay` priority; derive `coveredPct` and `status` |
-| 3 | `src/engine/core.js` | `runwayDays` | Always `14` | `floor(reserve / essentialDailyCost)`, guarding `essentialDailyCost <= 0` |
 | 4 | `src/util.js` | `ESSENTIAL_DAILY_COST` | Constant `600` | Derive from settings / recurring must-pay bills / recent costs |
 | 5 | `src/util.js` | `statusFor` / `billOut` | `coveredPct` from `covered_amt / amount`; status by fixed 50%/100% thresholds | Use `billCoverage` output so dashboard and `/bills` agree with the engine |
 | 6 | `src/routes/dashboard.js` | `GET /dashboard` | `safeToSpend: 1240` literal | Compute from the engine (today's spend share / pool minus protected amounts) |
