@@ -81,6 +81,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #2B6CFF;outline-offse
 .btn{min-height:58px;border-radius:18px;background:var(--ink);color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 18px;text-align:center;line-height:1.35}
 .btn.light{background:var(--paper);color:var(--ink);border:2px solid var(--ink)}
 .btn.on-dark{background:#fff;color:var(--ink)}
+.btn.danger{background:#c9261b;color:#fff}
 .btn[disabled]{opacity:.3;cursor:not-allowed}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .two .btn{flex-direction:column;gap:6px;padding:14px 8px;min-height:92px}
@@ -247,7 +248,7 @@ en:{
  weather_title:"Weather alert",weather:"Rain likely tomorrow. Earnings may be lower, so spend carefully.",weather_tag:"Sample forecast",
  export_title:"Income summary",export_sub:"Your own record of earnings and costs",export_btn:"View and copy",
  x_period:"Last 14 days",x_gross:"Total earned (gross)",x_work:"Work costs",x_net:"Money left (net)",x_days:"Days worked",x_note:"Self-reported by you. Not checked or verified by anyone.",
- copy:"Copy summary",copied:"Copied",copy_fail:"Could not copy. Select the text and copy it.",close:"Close",
+ copy:"Copy summary",copied:"Copied",copy_fail:"Could not copy. Select the text and copy it.",close:"Close",reset_title:"Reset data",reset_sub:"Clear everything and start again from ₹0",reset_q:"Do you really want to reset the data?",reset_warn:"All your earnings, costs, bills and vault money will be set to ₹0. This cannot be undone.",reset_yes:"Yes, reset everything",reset_no:"No, keep my data",reset_done:"Data reset to ₹0",
  amount:"Amount",for_what:"What is it for?",cat_fare:"Trip fare",cat_cng:"Fuel / CNG",cat_vrent:"Vehicle rent",cat_other:"Other work cost",cat_home:"Home and food",
  save:"Save",speak:"Speak the amount",listening:"Listening…",voice_na:"Voice is not available in this browser. Type the amount.",voice_retry:"Could not catch that. Try again, like \"five hundred\".",voice_perm:"Allow the microphone, then try again.",saved:"Saved",
  money_title:"Today's money",left_use:"Left to use",split_title:"Where your {n} goes",split_bills:"Keep for bills",split_vault:"Put in vault",split_spend:"Free to spend",
@@ -288,7 +289,7 @@ hi:{
  weather_title:"मौसम चेतावनी",weather:"कल बारिश की संभावना है। कमाई कम हो सकती है, सोच-समझकर खर्च करें।",weather_tag:"नमूना पूर्वानुमान",
  export_title:"आय का सारांश",export_sub:"आपकी कमाई और खर्च का अपना रिकॉर्ड",export_btn:"देखें और कॉपी करें",
  x_period:"पिछले 14 दिन",x_gross:"कुल कमाई",x_work:"काम का खर्च",x_net:"बचा पैसा (नेट)",x_days:"काम के दिन",x_note:"यह जानकारी आपने खुद दी है। किसी ने जाँची या सत्यापित नहीं की है।",
- copy:"सारांश कॉपी करें",copied:"कॉपी हो गया",copy_fail:"कॉपी नहीं हो सका। टेक्स्ट चुनकर कॉपी करें।",close:"बंद करें",
+ copy:"सारांश कॉपी करें",copied:"कॉपी हो गया",copy_fail:"कॉपी नहीं हो सका। टेक्स्ट चुनकर कॉपी करें।",close:"बंद करें",reset_title:"डेटा रीसेट करें",reset_sub:"सब कुछ मिटाकर ₹0 से फिर शुरू करें",reset_q:"क्या आप सच में डेटा रीसेट करना चाहते हैं?",reset_warn:"आपकी सारी कमाई, खर्च, बिल और तिजोरी का पैसा ₹0 हो जाएगा। इसे वापस नहीं किया जा सकता।",reset_yes:"हाँ, सब रीसेट करें",reset_no:"नहीं, मेरा डेटा रखें",reset_done:"डेटा ₹0 कर दिया गया",
  amount:"रकम",for_what:"यह किसलिए है?",cat_fare:"सवारी का किराया",cat_cng:"ईंधन / CNG",cat_vrent:"गाड़ी का किराया",cat_other:"काम का दूसरा खर्च",cat_home:"घर और खाना",
  save:"सहेजें",speak:"रकम बोलें",listening:"सुन रहा हूँ…",voice_na:"इस ब्राउज़र में आवाज़ उपलब्ध नहीं है। रकम लिखें।",voice_retry:"समझ नहीं आया। फिर बोलें, जैसे \"पाँच सौ\"।",voice_perm:"माइक्रोफ़ोन की अनुमति दें, फिर कोशिश करें।",saved:"सहेज लिया",
  money_title:"आज का पैसा",left_use:"इस्तेमाल के लिए बचा",split_title:"आपके {n} कहाँ जाएँगे",split_bills:"बिलों के लिए रखें",split_vault:"तिजोरी में डालें",split_spend:"खर्च के लिए खुला",
@@ -329,7 +330,7 @@ kn:{
  weather_title:"ಹವಾಮಾನ ಎಚ್ಚರಿಕೆ",weather:"ನಾಳೆ ಮಳೆ ಸಾಧ್ಯತೆ ಇದೆ. ಗಳಿಕೆ ಕಡಿಮೆಯಾಗಬಹುದು, ಎಚ್ಚರಿಕೆಯಿಂದ ಖರ್ಚು ಮಾಡಿ.",weather_tag:"ಮಾದರಿ ಮುನ್ಸೂಚನೆ",
  export_title:"ಆದಾಯ ಸಾರಾಂಶ",export_sub:"ನಿಮ್ಮ ಗಳಿಕೆ ಮತ್ತು ಖರ್ಚಿನ ನಿಮ್ಮದೇ ದಾಖಲೆ",export_btn:"ನೋಡಿ ಮತ್ತು ಕಾಪಿ ಮಾಡಿ",
  x_period:"ಕಳೆದ 14 ದಿನಗಳು",x_gross:"ಒಟ್ಟು ಗಳಿಕೆ",x_work:"ಕೆಲಸದ ಖರ್ಚು",x_net:"ಉಳಿದ ಹಣ (ನಿವ್ವಳ)",x_days:"ಕೆಲಸ ಮಾಡಿದ ದಿನಗಳು",x_note:"ಇದು ನೀವೇ ನೀಡಿದ ಮಾಹಿತಿ. ಯಾರೂ ಪರಿಶೀಲಿಸಿಲ್ಲ ಅಥವಾ ದೃಢೀಕರಿಸಿಲ್ಲ.",
- copy:"ಸಾರಾಂಶ ಕಾಪಿ ಮಾಡಿ",copied:"ಕಾಪಿ ಆಗಿದೆ",copy_fail:"ಕಾಪಿ ಮಾಡಲಾಗಲಿಲ್ಲ. ಪಠ್ಯವನ್ನು ಆರಿಸಿ ಕಾಪಿ ಮಾಡಿ.",close:"ಮುಚ್ಚಿ",
+ copy:"ಸಾರಾಂಶ ಕಾಪಿ ಮಾಡಿ",copied:"ಕಾಪಿ ಆಗಿದೆ",copy_fail:"ಕಾಪಿ ಮಾಡಲಾಗಲಿಲ್ಲ. ಪಠ್ಯವನ್ನು ಆರಿಸಿ ಕಾಪಿ ಮಾಡಿ.",close:"ಮುಚ್ಚಿ",reset_title:"ಡೇಟಾ ರೀಸೆಟ್ ಮಾಡಿ",reset_sub:"ಎಲ್ಲವನ್ನೂ ಅಳಿಸಿ ₹0 ಯಿಂದ ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ",reset_q:"ನೀವು ನಿಜವಾಗಿಯೂ ಡೇಟಾ ರೀಸೆಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?",reset_warn:"ನಿಮ್ಮ ಎಲ್ಲಾ ಗಳಿಕೆ, ಖರ್ಚು, ಬಿಲ್ ಮತ್ತು ತಿಜೋರಿಯ ಹಣ ₹0 ಆಗುತ್ತದೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",reset_yes:"ಹೌದು, ಎಲ್ಲವನ್ನೂ ರೀಸೆಟ್ ಮಾಡಿ",reset_no:"ಇಲ್ಲ, ನನ್ನ ಡೇಟಾ ಉಳಿಸಿ",reset_done:"ಡೇಟಾ ₹0 ಗೆ ರೀಸೆಟ್ ಆಗಿದೆ",
  amount:"ಮೊತ್ತ",for_what:"ಇದು ಯಾವುದಕ್ಕಾಗಿ?",cat_fare:"ಸವಾರಿ ಶುಲ್ಕ",cat_cng:"ಇಂಧನ / CNG",cat_vrent:"ವಾಹನ ಬಾಡಿಗೆ",cat_other:"ಕೆಲಸದ ಇತರ ಖರ್ಚು",cat_home:"ಮನೆ ಮತ್ತು ಊಟ",
  save:"ಉಳಿಸಿ",speak:"ಮೊತ್ತವನ್ನು ಹೇಳಿ",listening:"ಕೇಳುತ್ತಿದ್ದೇನೆ…",voice_na:"ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಲಭ್ಯವಿಲ್ಲ. ಮೊತ್ತವನ್ನು ಟೈಪ್ ಮಾಡಿ.",voice_retry:"ಅರ್ಥವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಹೇಳಿ, ಉದಾ \"ಐನೂರು\".",voice_perm:"ಮೈಕ್ರೋಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",saved:"ಉಳಿಸಲಾಗಿದೆ",
  money_title:"ಇಂದಿನ ಹಣ",left_use:"ಬಳಕೆಗೆ ಉಳಿದದ್ದು",split_title:"ನಿಮ್ಮ {n} ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತದೆ",split_bills:"ಬಿಲ್‌ಗಳಿಗೆ ಇಡಿ",split_vault:"ತಿಜೋರಿಗೆ ಹಾಕಿ",split_spend:"ಖರ್ಚಿಗೆ ಮುಕ್ತ",
@@ -598,6 +599,7 @@ function viewMoney(){
   ${c.withdrawn>0?`<section class="card"><h2>${t('refill_title')}</h2><p>${t('refill_body',{c:fmt(100),d:refillDays})}</p>
    <button class="sw" role="switch" aria-checked="${S.refill}" data-a="refill"><span>${S.refill?t('on'):t('off')}</span><span class="trk"></span></button></section>`:''}
   <section class="card"><h2>${t('entries_title')}</h2><div>${rows}</div></section>
+  <button class="card link-card" data-a="openReset"><div class="row" style="min-height:0"><div><h2>${t('reset_title')}</h2><div class="cap">${t('reset_sub')}</div></div>${ic('refresh',24,2.6)}</div></button>
  </div>`;
 }
 
@@ -732,6 +734,11 @@ function sheetHTML(){
    <div class="amount" style="height:64px;font-size:30px"><input id="day" inputmode="numeric" autocomplete="off" maxlength="2" value="${sh.day}"></div>
    <div class="chips">${[1,5,10,15,20,25].map(v=>`<button class="chip" data-a="billDay" data-v="${v}" aria-pressed="${String(v)===sh.day}">${v}</button>`).join('')}</div>
    <div id="dyn">${dynBill()}</div>`;
+ }else if(sh.type==='reset'){
+  body=`<div class="sheet-head"><h2 id="st">${t('reset_q')}</h2>${close}</div>
+   <div class="note">${ic('alert',22)}<span>${t('reset_warn')}</span></div>
+   <button class="btn danger" data-a="confirmReset">${t('reset_yes')}</button>
+   <button class="btn light" data-a="close">${t('reset_no')}</button>`;
  }else{
   body=`<div class="sheet-head"><h2 id="st">${t('export_title')}</h2>${close}</div>
    <div class="pill na">${t('x_period')}</div>
@@ -832,6 +839,8 @@ function act(a,v,el,ev){
     case 'payBill':{const id=S.sheet.id;S.lab.res={};S.sheet=null;toast(t('bill_paid'));api('/bills/'+id+'/pay',{method:'POST'}).then(refresh).catch(e=>toast(e.message));break}
    case 'removeBill':{const id=S.sheet.id;S.lab.res={};S.sheet=null;toast(t('bill_removed'));api('/bills/'+id,{method:'DELETE'}).then(refresh).catch(e=>toast(e.message));break}
   case 'openExport':S.sheet={type:'export'};render();break;
+  case 'openReset':S.sheet={type:'reset'};render();break;
+  case 'confirmReset':S.sheet=null;api('/seed/clear',{method:'POST'}).then(()=>{S.entries=[];Object.assign(S.lab,{pick:'normal',phase:'idle',res:{},done:{},p:1,fresh:false,details:false,newBadge:false});S.screen=1;toast(t('reset_done'));return refresh()}).catch(e=>toast(e.message));break;
   case 'close':S.sheet=null;render();break;
   case 'scrim':if(ev.target===el){S.sheet=null;render()}break;
   case 'quick':S.sheet.amount=String(v);{const i=$('#amt');if(i)i.value=v}refreshDyn();break;
