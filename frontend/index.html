@@ -373,7 +373,10 @@ const S={lang:'en',screen:0,why:false,assume:false,refill:false,sheet:null,toast
   {id:1,kind:'fare',cat:'cat_fare',amt:1100},{id:2,kind:'fare',cat:'cat_fare',amt:900},{id:3,kind:'fare',cat:'cat_fare',amt:400},
   {id:4,kind:'work',cat:'cat_cng',amt:600},{id:5,kind:'work',cat:'cat_vrent',amt:250}],
  lab:{pick:'normal',phase:'idle',month:0,res:{},done:{},p:1,fresh:false,details:false,newBadge:false}};
- const api=async(p,o={})=>{const r=await fetch('/api'+p,{method:o.method||'GET',headers:{'content-type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j};
+ const judgeId=(()=>{let id='';try{id=localStorage.getItem('es_judge')||''}catch(e){}
+ if(!/^[A-Za-z0-9_-]{8,64}$/.test(id)){id=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^A-Za-z0-9_-]/g,'');try{localStorage.setItem('es_judge',id)}catch(e){}}
+ return id})();
+ const api=async(p,o={})=>{const r=await fetch('/api'+p,{method:o.method||'GET',headers:{'content-type':'application/json','x-judge-id':judgeId},body:o.body?JSON.stringify(o.body):undefined});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');return j};
 S.api=null;
 async function refresh(){try{const[d,s,r]=await Promise.all([api('/dashboard'),api('/settings'),api('/reports/summary')]);S.api={d,s,r};S.lang=s.language;S.bills=d.bills.map(b=>({id:b.id,kind:b.name,amt:b.amount,day:+b.dueDate.slice(8,10)}))}catch(e){S.api=null}render()}
 const nextDate=day=>{const n=new Date(),y=n.getFullYear(),m=n.getMonth(),dim=(a,b)=>new Date(a,b+1,0).getDate();let d=new Date(y,m,Math.min(day,dim(y,m)));if(d<new Date(y,m,n.getDate()))d=new Date(y,m+1,Math.min(day,dim(y,m+1)));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
