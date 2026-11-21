@@ -1,18 +1,21 @@
 // SQLite setup: schema + demo seed (driver Ravi Kumar, "today" = 20 Nov 2026).
+// Every judge/browser gets its own database file (named after the id the frontend sends in the
+// X-Judge-Id header), seeded on first use. Requests without a valid id use the shared default DB.
 const path = require('path');
 const fs = require('fs');
+const { AsyncLocalStorage } = require('async_hooks');
 const Database = require('better-sqlite3');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'earnshield.db');
-if (DB_PATH !== ':memory:') fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
+const IN_MEMORY = DB_PATH === ':memory:';
+if (!IN_MEMORY) fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+const JUDGE_DIR = IN_MEMORY ? null : path.join(path.dirname(DB_PATH), 'judges');
+if (JUDGE_DIR) fs.mkdirSync(JUDGE_DIR, { recursive: true });
 
 const DRIVER = { name: 'Ravi Kumar' };
 const TODAY = '2026-11-20';
 
-db.exec(`
+const SCHEMA = `
 CREATE TABLE IF NOT EXISTS entries (
   date        TEXT PRIMARY KEY,          -- YYYY-MM-DD
   gross       REAL NOT NULL,
@@ -57,7 +60,8 @@ CREATE TABLE IF NOT EXISTS settings (
   reserve_mode   TEXT NOT NULL DEFAULT 'auto',
   weather_alerts INTEGER NOT NULL DEFAULT 1
 );
-`);
+`;
+
 
 // Nets for the 14 days before today (6..19 Nov): range 900-2000, average 1150.
 const EARLIER_NETS = [920, 1000, 1080, 950, 2000, 900, 1100, 1020, 960, 1150, 1180, 1800, 1040, 1000];
@@ -68,7 +72,7 @@ function addDays(iso, n) {
   return d.toISOString().slice(0, 10);
 }
 
-const seed = db.transaction(() => {
+const seedDb = (db) => db.transaction(() => {
   for (const t of ['entries', 'bills', 'reserve_state', 'buffer_events', 'settings', 'entry_bill_alloc']) db.exec(`DELETE FROM ${t}`);
   db.exec(`DELETE FROM sqlite_sequence WHERE name IN ('bills','buffer_events')`);
 
@@ -98,13 +102,53 @@ const seed = db.transaction(() => {
   ev.run('2026-11-20', 'deposit', 260, 'Daily reserve');
 
   db.prepare(`INSERT INTO settings (id,language,reserve_mode,weather_alerts) VALUES (1,'en','auto',1)`).run();
+})();
+
+// ---- per-judge database handling ----
+const VALID_ID = /^[A-Za-z0-9_-]{8,64}$/;
+const MAX_OPEN = 200; // open handles kept; least recently used are closed (files stay on disk)
+const open = new Map(); // key -> Database (insertion order = recency)
+
+function openDb(key) {
+  const file = key === 'default' ? DB_PATH : path.join(JUDGE_DIR, key + '.db');
+  const d = new Database(file);
+  if (!IN_MEMORY) d.pragma('journal_mode = WAL');
+  d.exec(SCHEMA);
+  if (d.prepare('SELECT COUNT(*) c FROM settings').get().c === 0) seedDb(d);
+  return d;
+}
+
+function getDb(key) {
+  let d = open.get(key);
+  if (d) { open.delete(key); open.set(key, d); return d; }
+  d = openDb(key);
+  open.set(key, d);
+  if (!IN_MEMORY && open.size > MAX_OPEN) {
+    for (const [k, old] of open) { if (k !== 'default' && k !== key) { old.close(); open.delete(k); break; } }
+  }
+  return d;
+}
+
+// In-memory mode (tests) has no per-judge files: every id shares the one default database.
+const keyFor = (id) => (IN_MEMORY || typeof id !== 'string' || !VALID_ID.test(id) ? 'default' : id);
+
+const als = new AsyncLocalStorage();
+const currentKey = () => als.getStore() || 'default';
+const runWithJudge = (id, fn) => als.run(keyFor(id), fn);
+
+// `db` looks like one Database but forwards every call to the current request's judge database.
+const db = new Proxy({}, {
+  get(_t, prop) {
+    const real = getDb(currentKey());
+    const v = real[prop];
+    return typeof v === 'function' ? v.bind(real) : v;
+  },
 });
 
-// Modules holding state in memory (e.g. a pending withdrawal) register here to be cleared on reset.
+// Modules holding per-judge in-memory state (e.g. a pending withdrawal) register here to be cleared on reset.
 const resetHooks = [];
-function resetSeed() { seed(); resetHooks.forEach((fn) => fn()); }
+function resetSeed() { seedDb(getDb(currentKey())); resetHooks.forEach((fn) => fn()); }
 
-const hasData = db.prepare('SELECT COUNT(*) c FROM settings').get().c > 0;
-if (!hasData) seed();
+getDb('default'); // create + seed the default database at startup
 
-module.exports = { db, resetSeed, resetHooks, DRIVER, TODAY };
+module.exports = { db, resetSeed, resetHooks, runWithJudge, currentKey, DRIVER, TODAY };

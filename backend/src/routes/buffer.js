@@ -1,13 +1,13 @@
 const express = require('express');
-const { db, TODAY, resetHooks } = require('../db');
+const { db, TODAY, resetHooks, currentKey } = require('../db');
 const { billCoverage, runwayDays } = require('../engine/core');
 const { ESSENTIAL_DAILY_COST, allBills, protectedPool, reserveState, bad } = require('../util');
 
 const router = express.Router();
 
-// The simulated withdrawal waiting for /buffer/rebuild/accept (one driver, so one slot).
-let pending = null;
-resetHooks.push(() => { pending = null; });
+// The simulated withdrawal waiting for /buffer/rebuild/accept: one slot per judge.
+const pendingByJudge = new Map();
+resetHooks.push(() => { pendingByJudge.delete(currentKey()); });
 
 const coverageList = (pool) =>
   billCoverage(allBills().filter((b) => !b.paid), pool).map(({ bill, coveredPct }) => ({ name: bill.name, coveredPct }));
@@ -32,7 +32,7 @@ router.post('/buffer/withdraw', (req, res) => {
   const days = avgSave > 0 ? Math.ceil(amount / avgSave) : 10;
   const rebuildPlan = { days, perDay: Math.round(amount / days) };
 
-  pending = { amount, reason: typeof reason === 'string' && reason.trim() ? reason.trim() : 'Withdrawal', rebuildPlan };
+  pendingByJudge.set(currentKey(), { amount, reason: typeof reason === 'string' && reason.trim() ? reason.trim() : 'Withdrawal', rebuildPlan });
   res.json({
     runwayBefore: runwayDays(rs.balance, ESSENTIAL_DAILY_COST),
     runwayAfter: runwayDays(after, ESSENTIAL_DAILY_COST),
@@ -43,6 +43,7 @@ router.post('/buffer/withdraw', (req, res) => {
 });
 
 router.post('/buffer/rebuild/accept', (req, res) => {
+  const pending = pendingByJudge.get(currentKey());
   if (!pending) throw bad('no withdrawal to accept; call /buffer/withdraw first');
   const { amount, reason, rebuildPlan } = pending;
   db.transaction(() => {
@@ -52,7 +53,7 @@ router.post('/buffer/rebuild/accept', (req, res) => {
     ev.run(TODAY, 'withdraw', amount, reason);
     ev.run(TODAY, 'rebuild', rebuildPlan.perDay, `Rebuild ${rebuildPlan.perDay}/day for ${rebuildPlan.days} days`);
   })();
-  pending = null;
+  pendingByJudge.delete(currentKey());
   res.json({ ok: true });
 });
 

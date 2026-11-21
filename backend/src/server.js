@@ -1,12 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('./db'); // initialises schema + seed
+const { runWithJudge } = require('./db'); // initialises schema + seed
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../frontend')));
+
+// Each request runs against the database of the judge named in the X-Judge-Id header.
+app.use('/api', (req, res, next) => runWithJudge(req.get('x-judge-id'), next));
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
