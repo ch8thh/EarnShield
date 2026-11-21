@@ -122,9 +122,6 @@ cd EarnShield/backend
 npm install
 npm start
 ```
-## Website
-
-https://earnshield.onrender.com/
 
 Open **http://localhost:4000**. The app and the API run together.
 
@@ -148,6 +145,9 @@ npm test
 
 > **Troubleshooting:** if you see *"was compiled against a different Node.js version"*, `node_modules` was installed under another Node version. Switch to Node 22, then run `rm -rf node_modules && npm install`.
 
+## Website
+
+https://earnshield.onrender.com/
 ---
 
 ## Demo data
