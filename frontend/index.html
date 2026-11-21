@@ -55,6 +55,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #2B6CFF;outline-offse
 
 .view{flex:1;min-height:0;overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:16px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.head .ttl{display:flex;align-items:center;gap:10px;min-width:0}
 .head h1{font-size:28px;line-height:1.3;font-weight:800;text-wrap:balance}
 .date{font-size:15px;color:var(--mute)}
 .lang{display:flex;flex:none;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:2px}
@@ -239,7 +240,7 @@ en:{
  lang_title:"Choose your language",lang_sub:"You can change it any time.",tagline:"Your daily earnings, protected.",cont:"Continue",
  rail_title:"Screens",s0:"Language",s1:"Home",s2:"Money and vault",s3:"Safety test",
  tab_home:"Home",tab_money:"Money",tab_lab:"Safety test",
- home_title:"Today",safe_label:"Safe to spend today",safe_why:"After keeping your next rent safe and {v} in the vault.",
+ home_title:"Welcome",safe_label:"Safe to spend today",safe_why:"After keeping your next rent safe and {v} in the vault.",
  safe_lean:"Today's earnings are less than your bills need. Do not spend extra.",safe_none:"No earnings added yet. Add your first trip.",safe_spent:"You already spent {h} today.",
  earned:"Earned",costs:"Work costs",ok14:"Bills look safe for the next 14 days",short14:"Projected {x} shortfall in 14 days",
  check14_none:"Your 14-day check will show after your first trip",warn_data:"Only {n} of the last 14 days are recorded. This amount may change.",
@@ -251,7 +252,7 @@ en:{
  x_period:"Last 14 days",x_gross:"Total earned (gross)",x_work:"Work costs",x_net:"Money left (net)",x_days:"Days worked",x_note:"Self-reported by you. Not checked or verified by anyone.",
  copy:"Copy summary",copied:"Copied",copy_fail:"Could not copy. Select the text and copy it.",close:"Close",reset_title:"Reset data",reset_sub:"Clear everything and start again from ₹0",reset_q:"Do you really want to reset the data?",reset_warn:"All your earnings, costs, bills and vault money will be set to ₹0. This cannot be undone.",reset_yes:"Yes, reset everything",reset_no:"No, keep my data",reset_done:"Data reset to ₹0",
  amount:"Amount",for_what:"What is it for?",cat_fare:"Trip fare",cat_cng:"Fuel / CNG",cat_vrent:"Vehicle rent",cat_other:"Other work cost",cat_home:"Home and food",
- save:"Save",speak:"Speak the amount",listening:"Listening…",voice_na:"Voice is not available in this browser. Type the amount.",voice_retry:"Could not catch that. Try again, like \"five hundred\".",voice_perm:"Allow the microphone, then try again.",saved:"Saved",
+ save:"Save",speak:"Speak the amount",listening:"Listening…",voice_na:"Voice works in Chrome. In this browser, type the amount or tap one below.",voice_net:"Voice needs an internet connection. Type the amount or tap one below.",voice_retry:"Could not catch that. Try again, like \"five hundred\".",voice_perm:"Allow the microphone, then try again.",saved:"Saved",
  money_title:"Today's money",left_use:"Left to use",split_title:"Where your {n} goes",split_bills:"Keep for bills",split_vault:"Put in vault",split_spend:"Free to spend",
  advice:"This is advice. No money moves.",why_btn:"Why this split?",
  why3:"Your daily earnings average about {a}, but they go up and down. So more is kept for bills.",why4:"Vehicle EMI is counted once, under bills.",why5:"Wrong entry? Remove it below and this updates.",
@@ -280,7 +281,7 @@ hi:{
  lang_title:"अपनी भाषा चुनें",lang_sub:"आप इसे कभी भी बदल सकते हैं।",tagline:"आपकी रोज़ की कमाई, सुरक्षित।",cont:"आगे बढ़ें",
  rail_title:"स्क्रीन",s0:"भाषा",s1:"होम",s2:"पैसा और तिजोरी",s3:"सुरक्षा जाँच",
  tab_home:"होम",tab_money:"पैसा",tab_lab:"सुरक्षा जाँच",
- home_title:"आज",safe_label:"आज खर्च के लिए सुरक्षित",safe_why:"अगला किराया सुरक्षित रखने और तिजोरी में {v} रखने के बाद।",
+ home_title:"स्वागत है",safe_label:"आज खर्च के लिए सुरक्षित",safe_why:"अगला किराया सुरक्षित रखने और तिजोरी में {v} रखने के बाद।",
  safe_lean:"आज की कमाई बिलों की ज़रूरत से कम है। अतिरिक्त खर्च न करें।",safe_none:"अभी तक कमाई नहीं जोड़ी। अपनी पहली सवारी जोड़ें।",safe_spent:"आज आप {h} खर्च कर चुके हैं।",
  earned:"कमाया",costs:"काम का खर्च",ok14:"अगले 14 दिनों के बिल सुरक्षित दिख रहे हैं",short14:"14 दिनों में {x} की कमी का अनुमान",
  check14_none:"आपकी 14 दिन की जाँच पहली कमाई के बाद दिखेगी",warn_data:"पिछले 14 में से सिर्फ़ {n} दिन दर्ज हैं। यह रकम बदल सकती है।",
@@ -292,7 +293,7 @@ hi:{
  x_period:"पिछले 14 दिन",x_gross:"कुल कमाई",x_work:"काम का खर्च",x_net:"बचा पैसा (नेट)",x_days:"काम के दिन",x_note:"यह जानकारी आपने खुद दी है। किसी ने जाँची या सत्यापित नहीं की है।",
  copy:"सारांश कॉपी करें",copied:"कॉपी हो गया",copy_fail:"कॉपी नहीं हो सका। टेक्स्ट चुनकर कॉपी करें।",close:"बंद करें",reset_title:"डेटा रीसेट करें",reset_sub:"सब कुछ मिटाकर ₹0 से फिर शुरू करें",reset_q:"क्या आप सच में डेटा रीसेट करना चाहते हैं?",reset_warn:"आपकी सारी कमाई, खर्च, बिल और तिजोरी का पैसा ₹0 हो जाएगा। इसे वापस नहीं किया जा सकता।",reset_yes:"हाँ, सब रीसेट करें",reset_no:"नहीं, मेरा डेटा रखें",reset_done:"डेटा ₹0 कर दिया गया",
  amount:"रकम",for_what:"यह किसलिए है?",cat_fare:"सवारी का किराया",cat_cng:"ईंधन / CNG",cat_vrent:"गाड़ी का किराया",cat_other:"काम का दूसरा खर्च",cat_home:"घर और खाना",
- save:"सहेजें",speak:"रकम बोलें",listening:"सुन रहा हूँ…",voice_na:"इस ब्राउज़र में आवाज़ उपलब्ध नहीं है। रकम लिखें।",voice_retry:"समझ नहीं आया। फिर बोलें, जैसे \"पाँच सौ\"।",voice_perm:"माइक्रोफ़ोन की अनुमति दें, फिर कोशिश करें।",saved:"सहेज लिया",
+ save:"सहेजें",speak:"रकम बोलें",listening:"सुन रहा हूँ…",voice_na:"आवाज़ Chrome में काम करती है। इस ब्राउज़र में रकम लिखें या नीचे से चुनें।",voice_net:"आवाज़ के लिए इंटरनेट चाहिए। रकम लिखें या नीचे से चुनें।",voice_retry:"समझ नहीं आया। फिर बोलें, जैसे \"पाँच सौ\"।",voice_perm:"माइक्रोफ़ोन की अनुमति दें, फिर कोशिश करें।",saved:"सहेज लिया",
  money_title:"आज का पैसा",left_use:"इस्तेमाल के लिए बचा",split_title:"आपके {n} कहाँ जाएँगे",split_bills:"बिलों के लिए रखें",split_vault:"तिजोरी में डालें",split_spend:"खर्च के लिए खुला",
  advice:"यह सिर्फ़ सलाह है। कोई पैसा नहीं हिलता।",why_btn:"यह बँटवारा क्यों?",
  why3:"आपकी रोज़ की औसत कमाई लगभग {a} है, पर यह ऊपर-नीचे होती रहती है। इसलिए बिलों के लिए ज़्यादा रखा गया है।",why4:"गाड़ी की EMI सिर्फ़ एक बार, बिलों में गिनी जाती है।",why5:"गलत एंट्री? नीचे से हटाएँ, यह अपने-आप बदल जाएगा।",
@@ -321,7 +322,7 @@ kn:{
  lang_title:"ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆರಿಸಿ",lang_sub:"ನೀವು ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",tagline:"ನಿಮ್ಮ ದಿನದ ಗಳಿಕೆ, ಸುರಕ್ಷಿತ.",cont:"ಮುಂದುವರಿಯಿರಿ",
  rail_title:"ಪರದೆಗಳು",s0:"ಭಾಷೆ",s1:"ಮುಖಪುಟ",s2:"ಹಣ ಮತ್ತು ತಿಜೋರಿ",s3:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
  tab_home:"ಮುಖಪುಟ",tab_money:"ಹಣ",tab_lab:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
- home_title:"ಇಂದು",safe_label:"ಇಂದು ಖರ್ಚಿಗೆ ಸುರಕ್ಷಿತ",safe_why:"ಮುಂದಿನ ಬಾಡಿಗೆಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿಟ್ಟು ತಿಜೋರಿಯಲ್ಲಿ {v} ಇಟ್ಟ ನಂತರ.",
+ home_title:"ಸ್ವಾಗತ",safe_label:"ಇಂದು ಖರ್ಚಿಗೆ ಸುರಕ್ಷಿತ",safe_why:"ಮುಂದಿನ ಬಾಡಿಗೆಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿಟ್ಟು ತಿಜೋರಿಯಲ್ಲಿ {v} ಇಟ್ಟ ನಂತರ.",
  safe_lean:"ಇಂದಿನ ಗಳಿಕೆ ಬಿಲ್‌ಗಳ ಅಗತ್ಯಕ್ಕಿಂತ ಕಡಿಮೆ ಇದೆ. ಹೆಚ್ಚುವರಿ ಖರ್ಚು ಮಾಡಬೇಡಿ.",safe_none:"ಇನ್ನೂ ಗಳಿಕೆ ಸೇರಿಸಿಲ್ಲ. ನಿಮ್ಮ ಮೊದಲ ಸವಾರಿ ಸೇರಿಸಿ.",safe_spent:"ಇಂದು ನೀವು ಈಗಾಗಲೇ {h} ಖರ್ಚು ಮಾಡಿದ್ದೀರಿ.",
  earned:"ಗಳಿಸಿದ್ದು",costs:"ಕೆಲಸದ ಖರ್ಚು",ok14:"ಮುಂದಿನ 14 ದಿನಗಳ ಬಿಲ್‌ಗಳು ಸುರಕ್ಷಿತವಾಗಿವೆ",short14:"14 ದಿನಗಳಲ್ಲಿ {x} ಕೊರತೆಯ ಅಂದಾಜು",
  check14_none:"ನಿಮ್ಮ 14 ದಿನಗಳ ಪರಿಶೀಲನೆ ಮೊದಲ ಗಳಿಕೆಯ ನಂತರ ತೋರಿಸುತ್ತದೆ",warn_data:"ಕಳೆದ 14 ದಿನಗಳಲ್ಲಿ ಕೇವಲ {n} ದಿನಗಳು ದಾಖಲಾಗಿವೆ. ಈ ಮೊತ್ತ ಬದಲಾಗಬಹುದು.",
@@ -333,7 +334,7 @@ kn:{
  x_period:"ಕಳೆದ 14 ದಿನಗಳು",x_gross:"ಒಟ್ಟು ಗಳಿಕೆ",x_work:"ಕೆಲಸದ ಖರ್ಚು",x_net:"ಉಳಿದ ಹಣ (ನಿವ್ವಳ)",x_days:"ಕೆಲಸ ಮಾಡಿದ ದಿನಗಳು",x_note:"ಇದು ನೀವೇ ನೀಡಿದ ಮಾಹಿತಿ. ಯಾರೂ ಪರಿಶೀಲಿಸಿಲ್ಲ ಅಥವಾ ದೃಢೀಕರಿಸಿಲ್ಲ.",
  copy:"ಸಾರಾಂಶ ಕಾಪಿ ಮಾಡಿ",copied:"ಕಾಪಿ ಆಗಿದೆ",copy_fail:"ಕಾಪಿ ಮಾಡಲಾಗಲಿಲ್ಲ. ಪಠ್ಯವನ್ನು ಆರಿಸಿ ಕಾಪಿ ಮಾಡಿ.",close:"ಮುಚ್ಚಿ",reset_title:"ಡೇಟಾ ರೀಸೆಟ್ ಮಾಡಿ",reset_sub:"ಎಲ್ಲವನ್ನೂ ಅಳಿಸಿ ₹0 ಯಿಂದ ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ",reset_q:"ನೀವು ನಿಜವಾಗಿಯೂ ಡೇಟಾ ರೀಸೆಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?",reset_warn:"ನಿಮ್ಮ ಎಲ್ಲಾ ಗಳಿಕೆ, ಖರ್ಚು, ಬಿಲ್ ಮತ್ತು ತಿಜೋರಿಯ ಹಣ ₹0 ಆಗುತ್ತದೆ. ಇದನ್ನು ಹಿಂತಿರುಗಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",reset_yes:"ಹೌದು, ಎಲ್ಲವನ್ನೂ ರೀಸೆಟ್ ಮಾಡಿ",reset_no:"ಇಲ್ಲ, ನನ್ನ ಡೇಟಾ ಉಳಿಸಿ",reset_done:"ಡೇಟಾ ₹0 ಗೆ ರೀಸೆಟ್ ಆಗಿದೆ",
  amount:"ಮೊತ್ತ",for_what:"ಇದು ಯಾವುದಕ್ಕಾಗಿ?",cat_fare:"ಸವಾರಿ ಶುಲ್ಕ",cat_cng:"ಇಂಧನ / CNG",cat_vrent:"ವಾಹನ ಬಾಡಿಗೆ",cat_other:"ಕೆಲಸದ ಇತರ ಖರ್ಚು",cat_home:"ಮನೆ ಮತ್ತು ಊಟ",
- save:"ಉಳಿಸಿ",speak:"ಮೊತ್ತವನ್ನು ಹೇಳಿ",listening:"ಕೇಳುತ್ತಿದ್ದೇನೆ…",voice_na:"ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಲಭ್ಯವಿಲ್ಲ. ಮೊತ್ತವನ್ನು ಟೈಪ್ ಮಾಡಿ.",voice_retry:"ಅರ್ಥವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಹೇಳಿ, ಉದಾ \"ಐನೂರು\".",voice_perm:"ಮೈಕ್ರೋಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",saved:"ಉಳಿಸಲಾಗಿದೆ",
+ save:"ಉಳಿಸಿ",speak:"ಮೊತ್ತವನ್ನು ಹೇಳಿ",listening:"ಕೇಳುತ್ತಿದ್ದೇನೆ…",voice_na:"ಧ್ವನಿ Chrome ನಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಮೊತ್ತವನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಕೆಳಗಿನದನ್ನು ಆರಿಸಿ.",voice_net:"ಧ್ವನಿಗೆ ಇಂಟರ್ನೆಟ್ ಬೇಕು. ಮೊತ್ತವನ್ನು ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಕೆಳಗಿನದನ್ನು ಆರಿಸಿ.",voice_retry:"ಅರ್ಥವಾಗಲಿಲ್ಲ. ಮತ್ತೆ ಹೇಳಿ, ಉದಾ \"ಐನೂರು\".",voice_perm:"ಮೈಕ್ರೋಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",saved:"ಉಳಿಸಲಾಗಿದೆ",
  money_title:"ಇಂದಿನ ಹಣ",left_use:"ಬಳಕೆಗೆ ಉಳಿದದ್ದು",split_title:"ನಿಮ್ಮ {n} ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತದೆ",split_bills:"ಬಿಲ್‌ಗಳಿಗೆ ಇಡಿ",split_vault:"ತಿಜೋರಿಗೆ ಹಾಕಿ",split_spend:"ಖರ್ಚಿಗೆ ಮುಕ್ತ",
  advice:"ಇದು ಸಲಹೆ ಮಾತ್ರ. ಯಾವುದೇ ಹಣ ವರ್ಗಾವಣೆಯಾಗುವುದಿಲ್ಲ.",why_btn:"ಈ ಹಂಚಿಕೆ ಏಕೆ?",
  why3:"ನಿಮ್ಮ ದಿನದ ಸರಾಸರಿ ಗಳಿಕೆ ಸುಮಾರು {a}, ಆದರೆ ಅದು ಏರಿಳಿತವಾಗುತ್ತದೆ. ಆದ್ದರಿಂದ ಬಿಲ್‌ಗಳಿಗೆ ಹೆಚ್ಚು ಇಡಲಾಗಿದೆ.",why4:"ವಾಹನ EMI ಅನ್ನು ಒಮ್ಮೆ ಮಾತ್ರ, ಬಿಲ್‌ಗಳಲ್ಲಿ ಲೆಕ್ಕ ಮಾಡಲಾಗುತ್ತದೆ.",why5:"ತಪ್ಪಾದ ದಾಖಲೆ? ಕೆಳಗಿನಿಂದ ತೆಗೆಯಿರಿ, ಇದು ತಾನಾಗಿ ಬದಲಾಗುತ್ತದೆ.",
@@ -499,7 +500,7 @@ const SEED=2026,SCEN={normal:{},vehicle:{vehicle:true},lean:{lean:true},both:{ve
 
 /* ---------- views ---------- */
 const langSeg=()=>`<div class="lang" role="group" aria-label="Language">${Object.keys(LANGS).map(k=>`<button data-a="lang" data-v="${k}" aria-pressed="${S.lang===k}" aria-label="${LANGS[k].name}" lang="${k}">${LANGS[k].code}</button>`).join('')}</div>`;
-const header=(title,sub)=>`<div class="head"><div><h1>${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>${langSeg()}</div>`;
+const header=(title,sub,logo)=>`<div class="head"><div class="ttl">${logo?`<img class="mk" src="${LOGO_MARK}" width="44" height="44" alt="EarnShield">`:''}<div><h1>${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div></div>${langSeg()}</div>`;
 const pill=(s)=>s==='target'?`<span class="pill ok">${ic('check',16,3)}${t('st_target')}</span>`:s==='risk'?`<span class="pill bad">${ic('alert',16,3)}${t('st_risk')}</span>`:`<span class="pill na">${ic('dash',16,3)}${t('st_info')}</span>`;
 
 function viewLang(){
@@ -523,9 +524,9 @@ function viewHome(){
  const ok=c.shortfall===0;
  const goals=[['g1',ok?'target':'risk',''],['g2','info',''],['g3',c.runway>=TARGET_DAYS?'target':'risk',t('g3d',{n:c.runway})]];
  return `<div class="view">
-  ${header(t('home_title'))}
+  ${header(t('home_title'),'',true)}
   <section class="hero" aria-label="${t('safe_label')}">
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div class="lbl">${t('safe_label')}</div><img class="mk" src="${LOGO_MARK_DARK}" width="52" height="52" alt="EarnShield"></div>
+   <div class="lbl">${t('safe_label')}</div>
    <div class="amt num">${fmt(c.spendLeft)}</div>
    <p>${why}</p>
    ${S.api&&c.days===0?`<div class="status">${ic('info',20,3)}<span>${t('check14_none')}</span></div>`:`<div class="status ${ok?'pos-d':'neg-d'}">${ic(ok?'check':'alert',20,3)}<span>${ok?t('ok14'):t('short14',{x:fmt(c.shortfall)})}</span></div>`}
@@ -757,8 +758,9 @@ function dynBill(){const sh=S.sheet,a=num(sh.amount),d=num(sh.day);
  const dayBad=sh.day!==''&&(d<1||d>31),ok=a>0&&d>=1&&d<=31;
   return `${dayBad?`<div class="say neg">${ic('alert',22,3)}<span>${t('bill_day_bad')}</span></div>`:''}<button class="btn" data-a="saveBill" ${ok?'':'disabled'}>${t('bill_save')}${a>0?' · '+fmt(a):''}</button>${sh.id?`<button class="btn" data-a="payBill">${ic('check',22,3)}${t('bill_pay')}</button><button class="btn light" data-a="removeBill">${ic('trash',22)}${t('bill_remove')}</button>`:''}`}
 function dynAdd(){const sh=S.sheet;const a=num(sh.amount);
- const vm={listening:'listening',na:'voice_na',retry:'voice_retry',perm:'voice_perm'};
- const msg=vm[sh.voice]?`<p class="cap">${t(vm[sh.voice])}</p>`:'';
+ const vm={listening:'listening',na:'voice_na',net:'voice_net',retry:'voice_retry',perm:'voice_perm'};
+ const noSR=!(window.SpeechRecognition||window.webkitSpeechRecognition); // e.g. Firefox: say so up front
+ const msg=vm[sh.voice]?`<p class="cap">${t(vm[sh.voice])}</p>`:noSR?`<p class="cap">${t('voice_na')}</p>`:'';
  return `${msg}<button class="btn ${sh.kind==='fare'?'earn':'spend'}" data-a="saveAdd" ${a>0?'':'disabled'}>${t(sh.kind==='fare'?'add_earn':'add_exp')}${a>0?' · '+fmt(a):''}</button>`}
 function dynOut(){const sh=S.sheet,c=calc(),a=num(sh.amount);
  if(a<=0)return `<button class="btn" disabled>${t('take_out')}</button>`;
@@ -818,7 +820,7 @@ function voice(){
   r.onresult=ev=>{got=true;let amt=0;
    for(const alt of Array.from(ev.results[0])){amt=parseAmount(alt.transcript);if(amt)break}
    if(amt&&S.sheet){S.sheet.amount=String(amt);const i=$('#amt');if(i)i.value=S.sheet.amount;set('')}else set('retry')};
-  r.onerror=ev=>{const e=ev.error;set(e==='not-allowed'||e==='service-not-allowed'||e==='audio-capture'?'perm':e==='no-speech'||e==='aborted'?'retry':'na')};
+  r.onerror=ev=>{const e=ev.error;set(e==='not-allowed'||e==='service-not-allowed'||e==='audio-capture'?'perm':e==='no-speech'||e==='aborted'?'retry':e==='network'?'net':'na')};
   r.onend=()=>{if(S.sheet&&S.sheet.voice==='listening')set(got?'':'retry')};
   set('listening');r.start();
  }catch(e){set('na')}
