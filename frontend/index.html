@@ -458,9 +458,9 @@ function shortfallFor(vault){
 /* ---------- stress-test engine (same seeded events for both plans) ---------- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let x=Math.imul(a^a>>>15,1|a);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
 const SIM={N:1000,D:365,E:NEED_DAY,START:16000,WORK:0.85,MEAN:1500,SHOCKS:3,SH_LO:2000,SH_HI:8000};
-function simulate(seed,opt,bills){
+function simulate(seed,opt,bills,prof){
  bills=bills||S.bills;
- const {N,D,E,START}=SIM,r=mulberry32(seed);
+ const {N,D,E}=SIM,START=(prof&&prof.START)||SIM.START,MEAN=(prof&&prof.MEAN)||SIM.MEAN,r=mulberry32(seed);
  const gauss=()=>{const u=1-r(),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
  const due=new Array(D).fill(0);
  for(let m=0;m<12;m++){const base=Math.round(m*30.4);bills.forEach(b=>{const d=Math.min(D-1,base+Math.max(1,b.day)-1);due[d]+=b.amt})}
@@ -470,7 +470,7 @@ function simulate(seed,opt,bills){
  for(let y=0;y<N;y++){
   const net=new Array(D),shock=new Array(D).fill(0),mk=[];
   for(let m=0;m<13;m++)mk.push(Math.min(1.25,Math.max(0.65,1+0.18*gauss())));
-  for(let d=0;d<D;d++){net[d]=r()<SIM.WORK?Math.max(250,SIM.MEAN*mk[Math.floor(d/30.4)]*Math.exp(0.32*gauss()-0.05)):0}
+  for(let d=0;d<D;d++){net[d]=r()<SIM.WORK?Math.max(250,MEAN*mk[Math.floor(d/30.4)]*Math.exp(0.32*gauss()-0.05)):0}
   for(let k=0;k<SIM.SHOCKS;k++){shock[Math.floor(r()*D)]+=SIM.SH_LO+Math.round(r()*(SIM.SH_HI-SIM.SH_LO))}
   const need=E*D+within(0,D)+shock.reduce((a,b)=>a+b,0),tot=net.reduce((a,b)=>a+b,0);
   if(tot<need*1.03){const f=need*1.03/tot;for(let d=0;d<D;d++)net[d]*=f}
@@ -497,6 +497,17 @@ function simulate(seed,opt,bills){
  return {base:f(A),es:f(B)};
 }
 const SEED=2026,SCEN={normal:{},vehicle:{vehicle:true},lean:{lean:true},both:{vehicle:true,lean:true}},ORDER=['normal','vehicle','lean','both'],SCICON={normal:'sun',vehicle:'car',lean:'cal',both:'stack'};
+/* Personalise the stress test: scale the sample driver by the user's real vault and average income.
+   The demo data gives ratios of exactly 1, so the demo results stay the same. Without the API it uses the sample values. */
+const REF_VAULT=8400,REF_AVG=1177;
+function labProfile(){
+ if(!S.api)return null;
+ const d=S.api.d,clamp=x=>Math.min(4,Math.max(0.25,x));
+ return {START:Math.round(SIM.START*clamp((d.reserve.balance||0)/REF_VAULT)),MEAN:Math.round(SIM.MEAN*clamp((d.variability.avg||0)/REF_AVG))};
+}
+function labSig(){const p=labProfile();return JSON.stringify([p&&p.START,p&&p.MEAN,S.bills.map(b=>[b.amt,b.day])])}
+function labRes(k){const L=S.lab,sig=labSig();if(L.sig!==sig){L.res={};L.sig=sig}
+ if(!L.res[k])L.res[k]=simulate(SEED,SCEN[k],null,labProfile());return L.res[k]}
 
 /* ---------- views ---------- */
 const langSeg=()=>`<div class="lang" role="group" aria-label="Language">${Object.keys(LANGS).map(k=>`<button data-a="lang" data-v="${k}" aria-pressed="${S.lang===k}" aria-label="${LANGS[k].name}" lang="${k}">${LANGS[k].code}</button>`).join('')}</div>`;
@@ -614,7 +625,7 @@ function runHTML(){const L=S.lab,n=Math.round(L.month/12*1000);
  return `<section class="hero"><div class="lbl">${t('running',{m:Math.max(1,L.month)})}</div><div class="segs" aria-hidden="true">${Array.from({length:12},(_,i)=>`<i class="${i<L.month?'on':''}"></i>`).join('')}</div><div class="amt num" style="font-size:40px">${t('years_tested',{n:n.toLocaleString('en-IN')})}</div></section>`}
 function resultHTML(){
  const L=S.lab;if(!L.done[L.pick])return '';
- if(!L.res[L.pick])L.res[L.pick]=simulate(SEED,SCEN[L.pick]);
+ labRes(L.pick);
  const r=L.res[L.pick];
  const p=L.fresh?L.p:1,pop=L.fresh?' pop':'';
  const sb=safe100(r.base),se=safe100(r.es),d=se-sb,tier=d>=10?'good':d>=1?'little':'none';
@@ -663,7 +674,7 @@ function viewLab(){
   <div id="labres" style="display:flex;flex-direction:column;gap:16px">${running?'':resultHTML()}</div>
   <p class="cap">${t('lab_note')}</p>
   <section class="card"><button class="acc" data-a="assume" aria-expanded="${S.assume}">${t('assume_btn')}${ic('down',22,3)}</button>
-   ${S.assume?`<div class="bullets"><div>${t('a1')}</div><div>${t('a2',{a:fmt(SIM.MEAN)})}</div><div>${t('a3',{t:fmt(billsTotal()),n:fmt(NEED_DAY)})}</div><div>${t('a4',{a:fmt(SIM.SH_LO),b:fmt(SIM.SH_HI)})}</div><div>${t('a5')}</div><div>${t('a6')}</div><div>${t('a7',{s:SEED})}</div></div>`:''}
+   ${S.assume?`<div class="bullets"><div>${t('a1')}</div><div>${t('a2',{a:fmt((labProfile()||SIM).MEAN)})}</div><div>${t('a3',{t:fmt(billsTotal()),n:fmt(NEED_DAY)})}</div><div>${t('a4',{a:fmt(SIM.SH_LO),b:fmt(SIM.SH_HI)})}</div><div>${t('a5')}</div><div>${t('a6')}</div><div>${t('a7',{s:SEED})}</div></div>`:''}
   </section>
  </div>`;
 }
@@ -679,7 +690,7 @@ function confetti(){
 }
 function runTest(){
  const L=S.lab;if(L.phase==='run')return;
- if(!L.res[L.pick])L.res[L.pick]=simulate(SEED,SCEN[L.pick]);
+ labRes(L.pick);
  L.phase='run';L.month=0;L.fresh=false;L.details=false;render();
  {const el=$('#labrun');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}
  const key=L.pick;let m=0;
@@ -697,7 +708,7 @@ function finishTest(key){
  const step=now=>{const x=Math.max(0,Math.min(1,(now-t0)/dur));L.p=1-Math.pow(1-x,3);paintResult();
   if(x<1)requestAnimationFrame(step);else{L.fresh=false;L.p=1}};
  requestAnimationFrame(step);
- const r=L.res[key];if(safe100(r.es)-safe100(r.base)>=10||L.newBadge)setTimeout(confetti,450);
+ const r=labRes(key);if(safe100(r.es)-safe100(r.base)>=10||L.newBadge)setTimeout(confetti,450);
 }
 
 /* ---------- sheets ---------- */
