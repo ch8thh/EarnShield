@@ -61,3 +61,22 @@ test('missing or invalid id falls back to the shared default DB', async () => {
 test('judge data persists across requests (separate file on disk)', async () => {
   assert.ok(fs.existsSync(path.join(dir, 'judges', A + '.db')));
 });
+
+test('clear wipes only the calling judge to zero', async () => {
+  const C = 'judge-cccccccc';
+  await call(C, 'GET', '/dashboard');
+  assert.equal((await call(C, 'POST', '/seed/clear')).ok, true);
+  const c = await call(C, 'GET', '/dashboard');
+  assert.equal(c.reserve.balance, 0);
+  assert.equal(c.bills.length, 0);
+  assert.equal(c.daysOfData, 0);
+  assert.equal(c.safeToSpend, 0);
+  assert.equal((await call(B, 'GET', '/dashboard')).reserve.balance, 8400);
+  // entering data after a clear works
+  const e = await call(C, 'POST', '/entries', { date: '2026-11-20', gross: 1000, fuel: 100, otherCosts: 0 });
+  assert.ok(e.net > 0);
+  assert.equal((await call(C, 'GET', '/reports/summary')).daysWorked, 1);
+  // and reset restores the demo data
+  await call(C, 'POST', '/seed/reset');
+  assert.equal((await call(C, 'GET', '/dashboard')).reserve.balance, 8400);
+});

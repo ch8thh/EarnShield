@@ -104,6 +104,14 @@ const seedDb = (db) => db.transaction(() => {
   db.prepare(`INSERT INTO settings (id,language,reserve_mode,weather_alerts) VALUES (1,'en','auto',1)`).run();
 })();
 
+// Wipe one database to zero: no entries, bills or reserve events, reserve balance 0. Settings (language) are kept.
+const clearDb = (db) => db.transaction(() => {
+  for (const t of ['entries', 'bills', 'buffer_events', 'entry_bill_alloc']) db.exec(`DELETE FROM ${t}`);
+  db.exec(`DELETE FROM sqlite_sequence WHERE name IN ('bills','buffer_events')`);
+  db.exec('DELETE FROM reserve_state');
+  db.prepare(`INSERT INTO reserve_state (id,balance,target,buffer) VALUES (1,0,15000,3000)`).run();
+})();
+
 // ---- per-judge database handling ----
 const VALID_ID = /^[A-Za-z0-9_-]{8,64}$/;
 const MAX_OPEN = 200; // open handles kept; least recently used are closed (files stay on disk)
@@ -148,7 +156,8 @@ const db = new Proxy({}, {
 // Modules holding per-judge in-memory state (e.g. a pending withdrawal) register here to be cleared on reset.
 const resetHooks = [];
 function resetSeed() { seedDb(getDb(currentKey())); resetHooks.forEach((fn) => fn()); }
+function clearData() { clearDb(getDb(currentKey())); resetHooks.forEach((fn) => fn()); }
 
 getDb('default'); // create + seed the default database at startup
 
-module.exports = { db, resetSeed, resetHooks, runWithJudge, currentKey, DRIVER, TODAY };
+module.exports = { db, resetSeed, clearData, resetHooks, runWithJudge, currentKey, DRIVER, TODAY };
