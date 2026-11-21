@@ -55,6 +55,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #2B6CFF;outline-offse
 
 .view{flex:1;min-height:0;overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:16px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.head .ttl{display:flex;align-items:center;gap:10px;min-width:0}
 .head h1{font-size:28px;line-height:1.3;font-weight:800;text-wrap:balance}
 .date{font-size:15px;color:var(--mute)}
 .lang{display:flex;flex:none;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:2px}
@@ -239,7 +240,7 @@ en:{
  lang_title:"Choose your language",lang_sub:"You can change it any time.",tagline:"Your daily earnings, protected.",cont:"Continue",
  rail_title:"Screens",s0:"Language",s1:"Home",s2:"Money and vault",s3:"Safety test",
  tab_home:"Home",tab_money:"Money",tab_lab:"Safety test",
- home_title:"Today",safe_label:"Safe to spend today",safe_why:"After keeping your next rent safe and {v} in the vault.",
+ home_title:"Welcome",safe_label:"Safe to spend today",safe_why:"After keeping your next rent safe and {v} in the vault.",
  safe_lean:"Today's earnings are less than your bills need. Do not spend extra.",safe_none:"No earnings added yet. Add your first trip.",safe_spent:"You already spent {h} today.",
  earned:"Earned",costs:"Work costs",ok14:"Bills look safe for the next 14 days",short14:"Projected {x} shortfall in 14 days",
  check14_none:"Your 14-day check will show after your first trip",warn_data:"Only {n} of the last 14 days are recorded. This amount may change.",
@@ -280,7 +281,7 @@ hi:{
  lang_title:"अपनी भाषा चुनें",lang_sub:"आप इसे कभी भी बदल सकते हैं।",tagline:"आपकी रोज़ की कमाई, सुरक्षित।",cont:"आगे बढ़ें",
  rail_title:"स्क्रीन",s0:"भाषा",s1:"होम",s2:"पैसा और तिजोरी",s3:"सुरक्षा जाँच",
  tab_home:"होम",tab_money:"पैसा",tab_lab:"सुरक्षा जाँच",
- home_title:"आज",safe_label:"आज खर्च के लिए सुरक्षित",safe_why:"अगला किराया सुरक्षित रखने और तिजोरी में {v} रखने के बाद।",
+ home_title:"स्वागत है",safe_label:"आज खर्च के लिए सुरक्षित",safe_why:"अगला किराया सुरक्षित रखने और तिजोरी में {v} रखने के बाद।",
  safe_lean:"आज की कमाई बिलों की ज़रूरत से कम है। अतिरिक्त खर्च न करें।",safe_none:"अभी तक कमाई नहीं जोड़ी। अपनी पहली सवारी जोड़ें।",safe_spent:"आज आप {h} खर्च कर चुके हैं।",
  earned:"कमाया",costs:"काम का खर्च",ok14:"अगले 14 दिनों के बिल सुरक्षित दिख रहे हैं",short14:"14 दिनों में {x} की कमी का अनुमान",
  check14_none:"आपकी 14 दिन की जाँच पहली कमाई के बाद दिखेगी",warn_data:"पिछले 14 में से सिर्फ़ {n} दिन दर्ज हैं। यह रकम बदल सकती है।",
@@ -321,7 +322,7 @@ kn:{
  lang_title:"ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆರಿಸಿ",lang_sub:"ನೀವು ಇದನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಬಹುದು.",tagline:"ನಿಮ್ಮ ದಿನದ ಗಳಿಕೆ, ಸುರಕ್ಷಿತ.",cont:"ಮುಂದುವರಿಯಿರಿ",
  rail_title:"ಪರದೆಗಳು",s0:"ಭಾಷೆ",s1:"ಮುಖಪುಟ",s2:"ಹಣ ಮತ್ತು ತಿಜೋರಿ",s3:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
  tab_home:"ಮುಖಪುಟ",tab_money:"ಹಣ",tab_lab:"ಸುರಕ್ಷತಾ ಪರೀಕ್ಷೆ",
- home_title:"ಇಂದು",safe_label:"ಇಂದು ಖರ್ಚಿಗೆ ಸುರಕ್ಷಿತ",safe_why:"ಮುಂದಿನ ಬಾಡಿಗೆಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿಟ್ಟು ತಿಜೋರಿಯಲ್ಲಿ {v} ಇಟ್ಟ ನಂತರ.",
+ home_title:"ಸ್ವಾಗತ",safe_label:"ಇಂದು ಖರ್ಚಿಗೆ ಸುರಕ್ಷಿತ",safe_why:"ಮುಂದಿನ ಬಾಡಿಗೆಯನ್ನು ಸುರಕ್ಷಿತವಾಗಿಟ್ಟು ತಿಜೋರಿಯಲ್ಲಿ {v} ಇಟ್ಟ ನಂತರ.",
  safe_lean:"ಇಂದಿನ ಗಳಿಕೆ ಬಿಲ್‌ಗಳ ಅಗತ್ಯಕ್ಕಿಂತ ಕಡಿಮೆ ಇದೆ. ಹೆಚ್ಚುವರಿ ಖರ್ಚು ಮಾಡಬೇಡಿ.",safe_none:"ಇನ್ನೂ ಗಳಿಕೆ ಸೇರಿಸಿಲ್ಲ. ನಿಮ್ಮ ಮೊದಲ ಸವಾರಿ ಸೇರಿಸಿ.",safe_spent:"ಇಂದು ನೀವು ಈಗಾಗಲೇ {h} ಖರ್ಚು ಮಾಡಿದ್ದೀರಿ.",
  earned:"ಗಳಿಸಿದ್ದು",costs:"ಕೆಲಸದ ಖರ್ಚು",ok14:"ಮುಂದಿನ 14 ದಿನಗಳ ಬಿಲ್‌ಗಳು ಸುರಕ್ಷಿತವಾಗಿವೆ",short14:"14 ದಿನಗಳಲ್ಲಿ {x} ಕೊರತೆಯ ಅಂದಾಜು",
  check14_none:"ನಿಮ್ಮ 14 ದಿನಗಳ ಪರಿಶೀಲನೆ ಮೊದಲ ಗಳಿಕೆಯ ನಂತರ ತೋರಿಸುತ್ತದೆ",warn_data:"ಕಳೆದ 14 ದಿನಗಳಲ್ಲಿ ಕೇವಲ {n} ದಿನಗಳು ದಾಖಲಾಗಿವೆ. ಈ ಮೊತ್ತ ಬದಲಾಗಬಹುದು.",
@@ -499,7 +500,7 @@ const SEED=2026,SCEN={normal:{},vehicle:{vehicle:true},lean:{lean:true},both:{ve
 
 /* ---------- views ---------- */
 const langSeg=()=>`<div class="lang" role="group" aria-label="Language">${Object.keys(LANGS).map(k=>`<button data-a="lang" data-v="${k}" aria-pressed="${S.lang===k}" aria-label="${LANGS[k].name}" lang="${k}">${LANGS[k].code}</button>`).join('')}</div>`;
-const header=(title,sub)=>`<div class="head"><div><h1>${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div>${langSeg()}</div>`;
+const header=(title,sub,logo)=>`<div class="head"><div class="ttl">${logo?`<img class="mk" src="${LOGO_MARK}" width="44" height="44" alt="EarnShield">`:''}<div><h1>${title}</h1>${sub?`<div class="date">${sub}</div>`:''}</div></div>${langSeg()}</div>`;
 const pill=(s)=>s==='target'?`<span class="pill ok">${ic('check',16,3)}${t('st_target')}</span>`:s==='risk'?`<span class="pill bad">${ic('alert',16,3)}${t('st_risk')}</span>`:`<span class="pill na">${ic('dash',16,3)}${t('st_info')}</span>`;
 
 function viewLang(){
@@ -523,9 +524,9 @@ function viewHome(){
  const ok=c.shortfall===0;
  const goals=[['g1',ok?'target':'risk',''],['g2','info',''],['g3',c.runway>=TARGET_DAYS?'target':'risk',t('g3d',{n:c.runway})]];
  return `<div class="view">
-  ${header(t('home_title'))}
+  ${header(t('home_title'),'',true)}
   <section class="hero" aria-label="${t('safe_label')}">
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><div class="lbl">${t('safe_label')}</div><img class="mk" src="${LOGO_MARK_DARK}" width="52" height="52" alt="EarnShield"></div>
+   <div class="lbl">${t('safe_label')}</div>
    <div class="amt num">${fmt(c.spendLeft)}</div>
    <p>${why}</p>
    ${S.api&&c.days===0?`<div class="status">${ic('info',20,3)}<span>${t('check14_none')}</span></div>`:`<div class="status ${ok?'pos-d':'neg-d'}">${ic(ok?'check':'alert',20,3)}<span>${ok?t('ok14'):t('short14',{x:fmt(c.shortfall)})}</span></div>`}
