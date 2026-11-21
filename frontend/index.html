@@ -82,6 +82,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #2B6CFF;outline-offse
 .btn.light{background:var(--paper);color:var(--ink);border:2px solid var(--ink)}
 .btn.on-dark{background:#fff;color:var(--ink)}
 .btn.danger{background:#c9261b;color:#fff}
+.btn.earn{background:var(--pos);color:#fff}.btn.spend{background:var(--neg);color:#fff}
 .btn[disabled]{opacity:.3;cursor:not-allowed}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .two .btn{flex-direction:column;gap:6px;padding:14px 8px;min-height:92px}
@@ -758,7 +759,7 @@ function dynBill(){const sh=S.sheet,a=num(sh.amount),d=num(sh.day);
 function dynAdd(){const sh=S.sheet;const a=num(sh.amount);
  const vm={listening:'listening',na:'voice_na',retry:'voice_retry',perm:'voice_perm'};
  const msg=vm[sh.voice]?`<p class="cap">${t(vm[sh.voice])}</p>`:'';
- return `${msg}<button class="btn" data-a="saveAdd" ${a>0?'':'disabled'}>${t('save')}${a>0?' · '+fmt(a):''}</button>`}
+ return `${msg}<button class="btn ${sh.kind==='fare'?'earn':'spend'}" data-a="saveAdd" ${a>0?'':'disabled'}>${t(sh.kind==='fare'?'add_earn':'add_exp')}${a>0?' · '+fmt(a):''}</button>`}
 function dynOut(){const sh=S.sheet,c=calc(),a=num(sh.amount);
  if(a<=0)return `<button class="btn" disabled>${t('take_out')}</button>`;
  if(a>c.vault)return `<div class="say neg">${ic('alert',22,3)}<span>${t('out_bad')}</span></div><button class="btn" disabled>${t('out_confirm',{x:fmt(a)})}</button>`;
