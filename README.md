@@ -122,6 +122,8 @@ cd EarnShield/backend
 npm install
 npm start
 ```
+##Website
+https://earnshield.onrender.com/
 
 Open **http://localhost:4000**. The app and the API run together.
 
